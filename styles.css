@@ -99,3 +99,120 @@
   .card, .hero { box-shadow: none; }
   .calc-panel { display: block !important; }
 }
+
+/* Migration 3: local Property Manager */
+.pm-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.pm-list {
+  display: grid;
+  gap: 10px;
+}
+.pm-property-card {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  padding: 13px;
+  cursor: pointer;
+}
+.pm-property-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(15,107,79,.12);
+}
+.pm-property-card strong {
+  display: block;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.pm-property-card span {
+  color: var(--muted);
+  font-size: .86rem;
+}
+.pm-form-section {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 18px;
+}
+.pm-unit-row {
+  display: grid;
+  grid-template-columns: 1.1fr .75fr .9fr .7fr auto;
+  gap: 8px;
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  padding: 9px 0;
+}
+.pm-unit-row .checkbox-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+}
+.pm-unit-row .checkbox-wrap input {
+  width: auto;
+}
+.pm-remove {
+  background: #f7e9e9;
+  border: 1px solid #ddbaba;
+  color: #7d2828;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+.pm-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+}
+.pm-data-badge {
+  display: inline-block;
+  border-radius: 999px;
+  background: #eef4f1;
+  color: var(--accent-2);
+  padding: 4px 8px;
+  font-size: .78rem;
+  font-weight: 700;
+}
+.pm-danger {
+  background: #f7e9e9;
+  color: #7d2828;
+}
+.pm-comparison td:first-child,
+.pm-comparison th:first-child {
+  position: sticky;
+  left: 0;
+  background: white;
+}
+.pm-file-input {
+  position: absolute;
+  left: -9999px;
+}
+.pm-breakdown {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.pm-breakdown > div {
+  background: #fbfcfe;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+.pm-breakdown strong {
+  display: block;
+  margin-bottom: 3px;
+}
+@media (max-width: 900px) {
+  .pm-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .pm-unit-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

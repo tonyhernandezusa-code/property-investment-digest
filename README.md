@@ -2,18 +2,18 @@
 
 A free educational real-estate research and analysis website.
 
-## Migration 2
+## Migration 3
 - Protected County Investment Map retained
-- Detailed rent-roll and expense analysis
-- NOI, cap rate, DSCR, cash flow, cash-on-cash return
-- Break-even occupancy, LTV, debt yield, expense ratio, GRM
-- Mortgage and amortization schedules
-- Interest-only and balloon-balance calculations
-- Conservative, base, and optimistic scenarios
-- 5- and 10-year base pro forma
-- Illustrative sale price, IRR, and equity multiple
-- Browser save/load and print functions
-- Expanded Learning Center and methodology
+- Full calculators retained
+- Private browser-based Property Manager
+- Multiple property records
+- Rent rolls and occupancy
+- Detailed annual operating expenses
+- Financing and loan-balance tracking
+- NOI, cap rate, DSCR, cash flow, cash-on-cash return, LTV, and equity
+- Portfolio dashboard and comparison table
+- Local save, JSON export/import, duplication, deletion, and printing
+- No login, cloud database, or property-data API
 
-## Data policy
-Migration 2 uses only user-entered information and mathematical calculations. It does not add an external property-data source.
+## Privacy model
+Property Manager records are stored in the visitor's browser local storage. Users should export backups regularly.

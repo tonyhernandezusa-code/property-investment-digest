@@ -1,0 +1,32 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 3
+
+This package adds a private browser-based Property Manager.
+
+UPLOAD:
+1. Download and unzip property-investment-digest-migration3.zip.
+2. Open the existing property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the unzipped Migration 3 folder.
+5. Drag them into GitHub.
+6. Commit message:
+   Add private property manager
+7. Click Commit changes.
+8. Wait for the Pages deployment green check.
+9. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/property-manager.html
+10. Press Ctrl + F5.
+
+TEST:
+- Click Load Sample Portfolio.
+- Select each sample property.
+- Change a rent or expense and click Save Property.
+- Create a New Property.
+- Test Export Backup.
+- Test Import Backup with the exported JSON file.
+- Confirm the comparison table updates.
+
+IMPORTANT:
+- The records stay in the current browser only.
+- Export backups regularly.
+- Do not upload the ZIP file itself.
+- Do not modify the original Stock-digest repository.

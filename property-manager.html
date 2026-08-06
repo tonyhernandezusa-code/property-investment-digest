@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Property Manager | Property Investment Digest</title>
+  <meta name="description" content="Private browser-based property organization, rent-roll, expense, financing, and comparison tools.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+  </div>
+
+  <section class="hero">
+    <h1>Private Property Manager</h1>
+    <p>Organize multiple properties, unit rents, occupancy, expenses, financing, and calculated operating results. Data stays in this browser unless you export a backup file.</p>
+    <span class="pm-data-badge">No login · No cloud database · No external property-data API</span>
+  </section>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> This tool is a private worksheet. Enter facts from leases, tax bills, insurance statements, loan documents, and your own records. The tool calculates totals and ratios, but it does not verify the information or recommend a transaction.
+  </div>
+
+  <section class="grid">
+    <article class="card"><div class="label">Properties</div><div class="value" id="dashProperties">0</div></article>
+    <article class="card"><div class="label">Units</div><div class="value" id="dashUnits">0</div></article>
+    <article class="card"><div class="label">Occupied units</div><div class="value" id="dashOccupied">0</div></article>
+    <article class="card"><div class="label">Annual scheduled rent</div><div class="value" id="dashRent">$0</div></article>
+    <article class="card"><div class="label">Combined NOI</div><div class="value" id="dashNoi">$0</div></article>
+    <article class="card"><div class="label">Combined cash flow</div><div class="value" id="dashCashFlow">$0</div></article>
+  </section>
+
+  <div class="action-row">
+    <button class="button" id="newPropertyButton" type="button">+ New Property</button>
+    <button class="button secondary" id="addSampleButton" type="button">Load Sample Portfolio</button>
+    <button class="button secondary" id="exportButton" type="button">Export Backup</button>
+    <button class="button secondary" id="importButton" type="button">Import Backup</button>
+    <input class="pm-file-input" id="importFile" type="file" accept=".json,application/json">
+    <button class="button secondary pm-danger" id="clearButton" type="button">Clear All Local Data</button>
+  </div>
+  <div class="status" id="globalStatus"></div>
+
+  <div class="pm-layout">
+    <aside class="card">
+      <h2>My Properties</h2>
+      <div class="pm-list" id="propertyList"></div>
+    </aside>
+
+    <section class="card">
+      <div id="editorEmpty" class="pm-empty">
+        Select a property or click <strong>New Property</strong>.
+      </div>
+
+      <form id="propertyForm" style="display:none;">
+        <input type="hidden" id="propertyId">
+
+        <div class="action-row" style="justify-content:space-between;">
+          <h2 style="margin:0;">Property Record</h2>
+          <div>
+            <button class="button secondary" id="duplicateButton" type="button">Duplicate</button>
+            <button class="button secondary pm-danger" id="deleteButton" type="button">Delete</button>
+          </div>
+        </div>
+
+        <div class="field-grid">
+          <div><label for="pmName">Property name</label><input id="pmName" type="text" required></div>
+          <div><label for="pmAddress">Address or description</label><input id="pmAddress" type="text"></div>
+          <div>
+            <label for="pmType">Property type</label>
+            <select id="pmType">
+              <option>1–4 Unit Residential</option>
+              <option>Multifamily</option>
+              <option>Retail</option>
+              <option>Office</option>
+              <option>Industrial</option>
+              <option>Mixed-Use</option>
+              <option>Land</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div><label for="pmPurchaseDate">Purchase or analysis date</label><input id="pmPurchaseDate" type="date"></div>
+          <div><label for="pmPurchasePrice">Purchase price or basis ($)</label><input id="pmPurchasePrice" type="number" min="0" step="1000"></div>
+          <div><label for="pmCurrentValue">Current estimated value ($)</label><input id="pmCurrentValue" type="number" min="0" step="1000"></div>
+          <div><label for="pmCashInvested">Cash invested ($)</label><input id="pmCashInvested" type="number" min="0" step="1000"></div>
+          <div><label for="pmNotes">Short notes</label><input id="pmNotes" type="text"></div>
+        </div>
+
+        <div class="pm-form-section">
+          <h3>Rent roll</h3>
+          <p class="muted">Add one row for each unit or unit type. Mark whether the units are occupied.</p>
+          <div id="pmUnitRows"></div>
+          <button class="button secondary" id="pmAddUnitButton" type="button">+ Add Unit Row</button>
+        </div>
+
+        <div class="pm-form-section">
+          <h3>Other annual income</h3>
+          <div class="field-grid">
+            <div><label for="pmOtherIncome">Laundry, parking, fees, or other income ($/year)</label><input id="pmOtherIncome" type="number" min="0" step="100"></div>
+            <div><label for="pmVacancyAllowance">Additional vacancy/credit allowance (%)</label><input id="pmVacancyAllowance" type="number" min="0" max="100" step="0.1"></div>
+          </div>
+        </div>
+
+        <div class="pm-form-section">
+          <h3>Annual operating expenses</h3>
+          <div class="field-grid">
+            <div><label for="pmTaxes">Property taxes ($)</label><input id="pmTaxes" type="number" min="0" step="100"></div>
+            <div><label for="pmInsurance">Insurance ($)</label><input id="pmInsurance" type="number" min="0" step="100"></div>
+            <div><label for="pmRepairs">Repairs and maintenance ($)</label><input id="pmRepairs" type="number" min="0" step="100"></div>
+            <div><label for="pmUtilities">Owner-paid utilities ($)</label><input id="pmUtilities" type="number" min="0" step="100"></div>
+            <div><label for="pmManagement">Management ($)</label><input id="pmManagement" type="number" min="0" step="100"></div>
+            <div><label for="pmLegalAdmin">Legal and administration ($)</label><input id="pmLegalAdmin" type="number" min="0" step="100"></div>
+            <div><label for="pmLeasing">Leasing and advertising ($)</label><input id="pmLeasing" type="number" min="0" step="100"></div>
+            <div><label for="pmHoa">HOA or association fees ($)</label><input id="pmHoa" type="number" min="0" step="100"></div>
+            <div><label for="pmReserve">Capital reserve ($)</label><input id="pmReserve" type="number" min="0" step="100"></div>
+            <div><label for="pmOtherExpenses">Other expenses ($)</label><input id="pmOtherExpenses" type="number" min="0" step="100"></div>
+          </div>
+        </div>
+
+        <div class="pm-form-section">
+          <h3>Financing</h3>
+          <div class="field-grid">
+            <div><label for="pmLoanBalance">Current loan balance ($)</label><input id="pmLoanBalance" type="number" min="0" step="1000"></div>
+            <div><label for="pmAnnualDebtService">Annual debt service ($)</label><input id="pmAnnualDebtService" type="number" min="0" step="100"></div>
+            <div><label for="pmInterestRate">Interest rate (%)</label><input id="pmInterestRate" type="number" min="0" step="0.01"></div>
+            <div><label for="pmMaturityDate">Maturity or balloon date</label><input id="pmMaturityDate" type="date"></div>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button class="button" type="submit">Save Property</button>
+          <button class="button secondary" id="printPropertyButton" type="button">Print Property</button>
+        </div>
+        <div class="status" id="formStatus"></div>
+
+        <div class="pm-form-section">
+          <h3>Calculated operating results</h3>
+          <div class="results">
+            <div class="result"><div class="label">Scheduled rent</div><div class="value" id="pmScheduledRent">$0</div></div>
+            <div class="result"><div class="label">Occupied rent</div><div class="value" id="pmOccupiedRent">$0</div></div>
+            <div class="result"><div class="label">Physical occupancy</div><div class="value" id="pmOccupancy">0.00%</div></div>
+            <div class="result"><div class="label">Effective gross income</div><div class="value" id="pmEgi">$0</div></div>
+            <div class="result"><div class="label">Operating expenses</div><div class="value" id="pmOpex">$0</div></div>
+            <div class="result"><div class="label">NOI</div><div class="value" id="pmNoi">$0</div></div>
+            <div class="result"><div class="label">Cap rate on purchase price</div><div class="value" id="pmCapRate">N/A</div></div>
+            <div class="result"><div class="label">DSCR</div><div class="value" id="pmDscr">N/A</div></div>
+            <div class="result"><div class="label">Annual cash flow</div><div class="value" id="pmCashFlow">$0</div></div>
+            <div class="result"><div class="label">Cash-on-cash return</div><div class="value" id="pmCoc">N/A</div></div>
+            <div class="result"><div class="label">Loan-to-value</div><div class="value" id="pmLtv">N/A</div></div>
+            <div class="result"><div class="label">Equity estimate</div><div class="value" id="pmEquity">$0</div></div>
+          </div>
+        </div>
+
+        <div class="pm-form-section">
+          <h3>Income and expense breakdown</h3>
+          <div class="pm-breakdown" id="pmBreakdown"></div>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Portfolio Comparison</h2>
+    <p class="muted">The comparison uses the same calculations for every saved property. A higher or lower ratio is not automatically better; property type, condition, financing, location, and data quality all matter.</p>
+    <div class="table-wrap">
+      <table class="pm-comparison">
+        <thead>
+          <tr>
+            <th>Property</th><th>Units</th><th>Occupancy</th><th>Scheduled Rent</th><th>NOI</th><th>Cap Rate</th><th>DSCR</th><th>Cash Flow</th><th>Equity</th>
+          </tr>
+        </thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notice">
+    <strong>Privacy and backup:</strong> The records are stored only in this browser's local storage. Clearing browser data, changing devices, or using another browser can remove or hide them. Use <strong>Export Backup</strong> regularly.
+  </div>
+</main>
+
+<footer>
+  <strong>Educational research only.</strong> This private worksheet does not verify property records, replace bookkeeping, recommend a property, or provide legal, tax, lending, appraisal, brokerage, insurance, engineering, or investment advice.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "pid_property_manager_v1";
+  const LEARNING_KEY = "pid_learning_mode";
+  const $ = (id) => document.getElementById(id);
+  const moneyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  const money = (value) => Number.isFinite(value) ? moneyFormatter.format(value) : "N/A";
+  const pct = (value) => Number.isFinite(value) ? (value * 100).toFixed(2) + "%" : "N/A";
+  const decimal = (value) => Number.isFinite(value) ? value.toFixed(2) : "N/A";
+  const numeric = (id) => Number($(id).value) || 0;
+  const uid = () => "p_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 9);
+
+  let properties = [];
+  let selectedId = null;
+
+  function setLearningMode(on) {
+    document.body.classList.toggle("learning-on", on);
+    $("learningToggle").textContent = on ? "🎓 Learning Mode: On" : "🎓 Learning Mode: Off";
+    localStorage.setItem(LEARNING_KEY, on ? "on" : "off");
+  }
+
+  function loadStorage() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      properties = Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      properties = [];
+    }
+  }
+
+  function saveStorage() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
+  }
+
+  function expenseTotal(p) {
+    return [
+      p.taxes, p.insurance, p.repairs, p.utilities, p.management,
+      p.legalAdmin, p.leasing, p.hoa, p.reserve, p.otherExpenses
+    ].reduce((sum, value) => sum + (Number(value) || 0), 0);
+  }
+
+  function calculateProperty(p) {
+    const units = Array.isArray(p.units) ? p.units : [];
+    const totalUnits = units.reduce((sum, unit) => sum + (Number(unit.count) || 0), 0);
+    const occupiedUnits = units.reduce((sum, unit) => sum + (unit.occupied ? (Number(unit.count) || 0) : 0), 0);
+    const scheduledRent = units.reduce((sum, unit) => sum + (Number(unit.count) || 0) * (Number(unit.monthlyRent) || 0) * 12, 0);
+    const occupiedRent = units.reduce((sum, unit) => sum + (unit.occupied ? (Number(unit.count) || 0) * (Number(unit.monthlyRent) || 0) * 12 : 0), 0);
+    const additionalVacancy = occupiedRent * ((Number(p.vacancyAllowance) || 0) / 100);
+    const effectiveGrossIncome = occupiedRent - additionalVacancy + (Number(p.otherIncome) || 0);
+    const operatingExpenses = expenseTotal(p);
+    const noi = effectiveGrossIncome - operatingExpenses;
+    const annualDebtService = Number(p.annualDebtService) || 0;
+    const cashFlow = noi - annualDebtService;
+    const purchasePrice = Number(p.purchasePrice) || 0;
+    const currentValue = Number(p.currentValue) || purchasePrice;
+    const loanBalance = Number(p.loanBalance) || 0;
+    const cashInvested = Number(p.cashInvested) || 0;
+
+    return {
+      totalUnits,
+      occupiedUnits,
+      scheduledRent,
+      occupiedRent,
+      physicalOccupancy: totalUnits > 0 ? occupiedUnits / totalUnits : NaN,
+      additionalVacancy,
+      effectiveGrossIncome,
+      operatingExpenses,
+      noi,
+      capRate: purchasePrice > 0 ? noi / purchasePrice : NaN,
+      dscr: annualDebtService > 0 ? noi / annualDebtService : NaN,
+      cashFlow,
+      cashOnCash: cashInvested > 0 ? cashFlow / cashInvested : NaN,
+      ltv: currentValue > 0 ? loanBalance / currentValue : NaN,
+      equity: currentValue - loanBalance
+    };
+  }
+
+  function blankProperty() {
+    return {
+      id: uid(),
+      name: "New Property",
+      address: "",
+      type: "Multifamily",
+      purchaseDate: "",
+      purchasePrice: 0,
+      currentValue: 0,
+      cashInvested: 0,
+      notes: "",
+      units: [{ name: "Unit Type", count: 1, monthlyRent: 1000, occupied: true }],
+      otherIncome: 0,
+      vacancyAllowance: 0,
+      taxes: 0,
+      insurance: 0,
+      repairs: 0,
+      utilities: 0,
+      management: 0,
+      legalAdmin: 0,
+      leasing: 0,
+      hoa: 0,
+      reserve: 0,
+      otherExpenses: 0,
+      loanBalance: 0,
+      annualDebtService: 0,
+      interestRate: 0,
+      maturityDate: ""
+    };
+  }
+
+  function samplePortfolio() {
+    return [
+      {
+        id: uid(), name: "Sunrise Apartments", address: "Sample only", type: "Multifamily",
+        purchaseDate: "2024-01-15", purchasePrice: 1250000, currentValue: 1380000, cashInvested: 340000, notes: "Illustrative sample",
+        units: [
+          { name: "1 Bedroom", count: 8, monthlyRent: 1350, occupied: true },
+          { name: "2 Bedroom", count: 4, monthlyRent: 1700, occupied: true }
+        ],
+        otherIncome: 7200, vacancyAllowance: 4, taxes: 18000, insurance: 13000, repairs: 12000, utilities: 7000,
+        management: 16000, legalAdmin: 3000, leasing: 2500, hoa: 0, reserve: 8000, otherExpenses: 2500,
+        loanBalance: 880000, annualDebtService: 69000, interestRate: 6.25, maturityDate: "2034-01-15"
+      },
+      {
+        id: uid(), name: "Palm Retail Center", address: "Sample only", type: "Retail",
+        purchaseDate: "2023-06-01", purchasePrice: 2100000, currentValue: 2250000, cashInvested: 600000, notes: "Illustrative sample",
+        units: [
+          { name: "Suite A", count: 1, monthlyRent: 7200, occupied: true },
+          { name: "Suite B", count: 1, monthlyRent: 6500, occupied: true },
+          { name: "Suite C", count: 1, monthlyRent: 5800, occupied: false }
+        ],
+        otherIncome: 12000, vacancyAllowance: 2, taxes: 31000, insurance: 18000, repairs: 15000, utilities: 10000,
+        management: 14000, legalAdmin: 4500, leasing: 6500, hoa: 0, reserve: 12000, otherExpenses: 3500,
+        loanBalance: 1420000, annualDebtService: 111000, interestRate: 6.75, maturityDate: "2033-06-01"
+      }
+    ];
+  }
+
+  function addUnitRow(unit = { name: "", count: 1, monthlyRent: 0, occupied: true }) {
+    const row = document.createElement("div");
+    row.className = "pm-unit-row";
+    row.innerHTML = `
+      <div><label>Unit/type</label><input class="pm-unit-name" type="text" value="${String(unit.name || "").replace(/"/g, "&quot;")}"></div>
+      <div><label>Count</label><input class="pm-unit-count" type="number" min="0" step="1" value="${Number(unit.count) || 0}"></div>
+      <div><label>Monthly rent</label><input class="pm-unit-rent" type="number" min="0" step="25" value="${Number(unit.monthlyRent) || 0}"></div>
+      <div><label>Status</label><div class="checkbox-wrap"><input class="pm-unit-occupied" type="checkbox" ${unit.occupied ? "checked" : ""}><span>Occupied</span></div></div>
+      <button class="pm-remove" type="button">Remove</button>
+    `;
+    row.querySelector(".pm-remove").addEventListener("click", () => {
+      row.remove();
+      updateLiveResults();
+    });
+    row.querySelectorAll("input").forEach((input) => input.addEventListener("input", updateLiveResults));
+    $("pmUnitRows").appendChild(row);
+  }
+
+  function collectUnits() {
+    return Array.from(document.querySelectorAll(".pm-unit-row")).map((row) => ({
+      name: row.querySelector(".pm-unit-name").value,
+      count: Number(row.querySelector(".pm-unit-count").value) || 0,
+      monthlyRent: Number(row.querySelector(".pm-unit-rent").value) || 0,
+      occupied: row.querySelector(".pm-unit-occupied").checked
+    }));
+  }
+
+  function formProperty() {
+    return {
+      id: $("propertyId").value || uid(),
+      name: $("pmName").value.trim() || "Unnamed Property",
+      address: $("pmAddress").value.trim(),
+      type: $("pmType").value,
+      purchaseDate: $("pmPurchaseDate").value,
+      purchasePrice: numeric("pmPurchasePrice"),
+      currentValue: numeric("pmCurrentValue"),
+      cashInvested: numeric("pmCashInvested"),
+      notes: $("pmNotes").value.trim(),
+      units: collectUnits(),
+      otherIncome: numeric("pmOtherIncome"),
+      vacancyAllowance: numeric("pmVacancyAllowance"),
+      taxes: numeric("pmTaxes"),
+      insurance: numeric("pmInsurance"),
+      repairs: numeric("pmRepairs"),
+      utilities: numeric("pmUtilities"),
+      management: numeric("pmManagement"),
+      legalAdmin: numeric("pmLegalAdmin"),
+      leasing: numeric("pmLeasing"),
+      hoa: numeric("pmHoa"),
+      reserve: numeric("pmReserve"),
+      otherExpenses: numeric("pmOtherExpenses"),
+      loanBalance: numeric("pmLoanBalance"),
+      annualDebtService: numeric("pmAnnualDebtService"),
+      interestRate: numeric("pmInterestRate"),
+      maturityDate: $("pmMaturityDate").value
+    };
+  }
+
+  function populateForm(p) {
+    $("editorEmpty").style.display = "none";
+    $("propertyForm").style.display = "block";
+    $("propertyId").value = p.id;
+    $("pmName").value = p.name || "";
+    $("pmAddress").value = p.address || "";
+    $("pmType").value = p.type || "Multifamily";
+    $("pmPurchaseDate").value = p.purchaseDate || "";
+    $("pmPurchasePrice").value = Number(p.purchasePrice) || 0;
+    $("pmCurrentValue").value = Number(p.currentValue) || 0;
+    $("pmCashInvested").value = Number(p.cashInvested) || 0;
+    $("pmNotes").value = p.notes || "";
+    $("pmOtherIncome").value = Number(p.otherIncome) || 0;
+    $("pmVacancyAllowance").value = Number(p.vacancyAllowance) || 0;
+    $("pmTaxes").value = Number(p.taxes) || 0;
+    $("pmInsurance").value = Number(p.insurance) || 0;
+    $("pmRepairs").value = Number(p.repairs) || 0;
+    $("pmUtilities").value = Number(p.utilities) || 0;
+    $("pmManagement").value = Number(p.management) || 0;
+    $("pmLegalAdmin").value = Number(p.legalAdmin) || 0;
+    $("pmLeasing").value = Number(p.leasing) || 0;
+    $("pmHoa").value = Number(p.hoa) || 0;
+    $("pmReserve").value = Number(p.reserve) || 0;
+    $("pmOtherExpenses").value = Number(p.otherExpenses) || 0;
+    $("pmLoanBalance").value = Number(p.loanBalance) || 0;
+    $("pmAnnualDebtService").value = Number(p.annualDebtService) || 0;
+    $("pmInterestRate").value = Number(p.interestRate) || 0;
+    $("pmMaturityDate").value = p.maturityDate || "";
+    $("pmUnitRows").innerHTML = "";
+    (Array.isArray(p.units) && p.units.length ? p.units : [{ name: "Unit", count: 1, monthlyRent: 0, occupied: true }])
+      .forEach(addUnitRow);
+    $("formStatus").textContent = "";
+    updateLiveResults();
+  }
+
+  function updateLiveResults() {
+    if ($("propertyForm").style.display === "none") return;
+    const p = formProperty();
+    const m = calculateProperty(p);
+    $("pmScheduledRent").textContent = money(m.scheduledRent);
+    $("pmOccupiedRent").textContent = money(m.occupiedRent);
+    $("pmOccupancy").textContent = pct(m.physicalOccupancy);
+    $("pmEgi").textContent = money(m.effectiveGrossIncome);
+    $("pmOpex").textContent = money(m.operatingExpenses);
+    $("pmNoi").textContent = money(m.noi);
+    $("pmCapRate").textContent = pct(m.capRate);
+    $("pmDscr").textContent = decimal(m.dscr);
+    $("pmCashFlow").textContent = money(m.cashFlow);
+    $("pmCoc").textContent = pct(m.cashOnCash);
+    $("pmLtv").textContent = pct(m.ltv);
+    $("pmEquity").textContent = money(m.equity);
+
+    $("pmBreakdown").innerHTML = `
+      <div><strong>Vacancy deduction</strong>${money(m.additionalVacancy)}</div>
+      <div><strong>Other annual income</strong>${money(p.otherIncome)}</div>
+      <div><strong>Taxes + insurance</strong>${money(p.taxes + p.insurance)}</div>
+      <div><strong>Repairs + reserve</strong>${money(p.repairs + p.reserve)}</div>
+      <div><strong>Management + administration</strong>${money(p.management + p.legalAdmin)}</div>
+      <div><strong>Annual debt service</strong>${money(p.annualDebtService)}</div>
+    `;
+  }
+
+  function renderPropertyList() {
+    const list = $("propertyList");
+    if (!properties.length) {
+      list.innerHTML = '<div class="pm-empty">No properties saved yet.</div>';
+      return;
+    }
+    list.innerHTML = "";
+    properties.forEach((p) => {
+      const m = calculateProperty(p);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "pm-property-card" + (p.id === selectedId ? " active" : "");
+      button.innerHTML = `<strong>${escapeHtml(p.name || "Unnamed Property")}</strong><span>${escapeHtml(p.type || "")} · ${m.totalUnits} units · NOI ${money(m.noi)}</span>`;
+      button.addEventListener("click", () => selectProperty(p.id));
+      list.appendChild(button);
+    });
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function renderDashboard() {
+    const totals = properties.reduce((acc, p) => {
+      const m = calculateProperty(p);
+      acc.units += m.totalUnits;
+      acc.occupied += m.occupiedUnits;
+      acc.rent += m.scheduledRent;
+      acc.noi += m.noi;
+      acc.cashFlow += m.cashFlow;
+      return acc;
+    }, { units: 0, occupied: 0, rent: 0, noi: 0, cashFlow: 0 });
+
+    $("dashProperties").textContent = properties.length;
+    $("dashUnits").textContent = totals.units;
+    $("dashOccupied").textContent = totals.occupied;
+    $("dashRent").textContent = money(totals.rent);
+    $("dashNoi").textContent = money(totals.noi);
+    $("dashCashFlow").textContent = money(totals.cashFlow);
+  }
+
+  function renderComparison() {
+    $("comparisonBody").innerHTML = properties.map((p) => {
+      const m = calculateProperty(p);
+      return `<tr>
+        <td>${escapeHtml(p.name || "Unnamed Property")}</td>
+        <td>${m.totalUnits}</td>
+        <td>${pct(m.physicalOccupancy)}</td>
+        <td>${money(m.scheduledRent)}</td>
+        <td>${money(m.noi)}</td>
+        <td>${pct(m.capRate)}</td>
+        <td>${decimal(m.dscr)}</td>
+        <td>${money(m.cashFlow)}</td>
+        <td>${money(m.equity)}</td>
+      </tr>`;
+    }).join("") || '<tr><td colspan="9">No saved properties to compare.</td></tr>';
+  }
+
+  function renderAll() {
+    renderPropertyList();
+    renderDashboard();
+    renderComparison();
+  }
+
+  function selectProperty(id) {
+    const p = properties.find((item) => item.id === id);
+    if (!p) return;
+    selectedId = id;
+    populateForm(p);
+    renderPropertyList();
+  }
+
+  function createNewProperty() {
+    const p = blankProperty();
+    properties.unshift(p);
+    saveStorage();
+    selectedId = p.id;
+    renderAll();
+    populateForm(p);
+    $("formStatus").textContent = "New property created. Enter the information and click Save Property.";
+  }
+
+  function saveCurrentProperty(event) {
+    event.preventDefault();
+    const p = formProperty();
+    const index = properties.findIndex((item) => item.id === p.id);
+    if (index >= 0) properties[index] = p;
+    else properties.unshift(p);
+    selectedId = p.id;
+    saveStorage();
+    renderAll();
+    $("formStatus").textContent = "Property saved in this browser.";
+  }
+
+  function deleteCurrentProperty() {
+    if (!selectedId) return;
+    const p = properties.find((item) => item.id === selectedId);
+    if (!p || !window.confirm(`Delete "${p.name}" from this browser?`)) return;
+    properties = properties.filter((item) => item.id !== selectedId);
+    selectedId = properties.length ? properties[0].id : null;
+    saveStorage();
+    renderAll();
+    if (selectedId) populateForm(properties[0]);
+    else {
+      $("propertyForm").style.display = "none";
+      $("editorEmpty").style.display = "block";
+    }
+  }
+
+  function duplicateCurrentProperty() {
+    const p = properties.find((item) => item.id === selectedId);
+    if (!p) return;
+    const copy = JSON.parse(JSON.stringify(p));
+    copy.id = uid();
+    copy.name = (copy.name || "Property") + " — Copy";
+    properties.unshift(copy);
+    selectedId = copy.id;
+    saveStorage();
+    renderAll();
+    populateForm(copy);
+    $("formStatus").textContent = "Duplicate created.";
+  }
+
+  function exportBackup() {
+    const payload = {
+      product: "Property Investment Digest Property Manager",
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      properties
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "property-investment-digest-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    $("globalStatus").textContent = "Backup exported.";
+  }
+
+  function importBackup(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const payload = JSON.parse(String(reader.result || ""));
+        const imported = Array.isArray(payload) ? payload : payload.properties;
+        if (!Array.isArray(imported)) throw new Error("No property array");
+        properties = imported.map((p) => ({ ...blankProperty(), ...p, id: p.id || uid(), units: Array.isArray(p.units) ? p.units : [] }));
+        selectedId = properties.length ? properties[0].id : null;
+        saveStorage();
+        renderAll();
+        if (selectedId) populateForm(properties[0]);
+        $("globalStatus").textContent = `Imported ${properties.length} properties.`;
+      } catch (error) {
+        $("globalStatus").textContent = "The selected file is not a valid Property Manager backup.";
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function clearAll() {
+    if (!window.confirm("Clear every saved property from this browser? Export a backup first if needed.")) return;
+    properties = [];
+    selectedId = null;
+    saveStorage();
+    renderAll();
+    $("propertyForm").style.display = "none";
+    $("editorEmpty").style.display = "block";
+    $("globalStatus").textContent = "All local Property Manager data was cleared.";
+  }
+
+  $("learningToggle").addEventListener("click", () => setLearningMode(!document.body.classList.contains("learning-on")));
+  setLearningMode(localStorage.getItem(LEARNING_KEY) === "on");
+
+  $("newPropertyButton").addEventListener("click", createNewProperty);
+  $("addSampleButton").addEventListener("click", () => {
+    if (properties.length && !window.confirm("Replace the current local portfolio with the sample portfolio?")) return;
+    properties = samplePortfolio();
+    selectedId = properties[0].id;
+    saveStorage();
+    renderAll();
+    populateForm(properties[0]);
+    $("globalStatus").textContent = "Sample portfolio loaded. Replace it with your own verified information.";
+  });
+  $("exportButton").addEventListener("click", exportBackup);
+  $("importButton").addEventListener("click", () => $("importFile").click());
+  $("importFile").addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (file) importBackup(file);
+    event.target.value = "";
+  });
+  $("clearButton").addEventListener("click", clearAll);
+  $("propertyForm").addEventListener("submit", saveCurrentProperty);
+  $("pmAddUnitButton").addEventListener("click", () => {
+    addUnitRow();
+    updateLiveResults();
+  });
+  $("deleteButton").addEventListener("click", deleteCurrentProperty);
+  $("duplicateButton").addEventListener("click", duplicateCurrentProperty);
+  $("printPropertyButton").addEventListener("click", () => window.print());
+
+  document.querySelectorAll("#propertyForm input, #propertyForm select").forEach((input) => {
+    if (!input.closest(".pm-unit-row")) input.addEventListener("input", updateLiveResults);
+  });
+
+  loadStorage();
+  renderAll();
+  if (properties.length) {
+    selectedId = properties[0].id;
+    populateForm(properties[0]);
+    renderPropertyList();
+  }
+})();
+</script>
+</body>
+</html>
