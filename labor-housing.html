@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>State Labor and House Price Trends | Property Investment Digest</title>
+  <meta name="description" content="Compare state unemployment and FHFA house-price trends using official U.S. government data.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+  </div>
+
+  <section class="hero">
+    <h1>State Labor and House Price Trends</h1>
+    <p>Compare seasonally adjusted state unemployment rates with FHFA purchase-only house-price changes.</p>
+    <span class="source-chip">BLS LAUS</span>
+    <span class="source-chip">FHFA HPI®</span>
+    <span class="source-chip">Automatic government-data update</span>
+  </section>
+
+  <div class="notice" id="dataNotice">
+    <strong>Data status:</strong> Loading the latest published government-data file.
+  </div>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> Unemployment describes labor-market conditions among the labor force. The FHFA HPI measures average price changes for repeatedly financed or sold single-family properties; it is an index, not a median sale price.
+  </div>
+
+  <section class="card">
+    <div class="market-controls">
+      <div>
+        <label for="stateSelect">State</label>
+        <select id="stateSelect"></select>
+      </div>
+      <div>
+        <label for="compareSelect">Compare with</label>
+        <select id="compareSelect"></select>
+      </div>
+      <div>
+        <label for="rankMetric">Ranking measurement</label>
+        <select id="rankMetric">
+          <option value="unemployment_rate">Unemployment rate</option>
+          <option value="unemployment_rate_yoy_change">12-month unemployment-rate change</option>
+          <option value="fhfa_quarter_change_pct">FHFA quarterly house-price change</option>
+          <option value="fhfa_year_change_pct">FHFA one-year house-price change</option>
+          <option value="fhfa_five_year_change_pct">FHFA five-year house-price change</option>
+          <option value="fhfa_since_1991_pct">FHFA change since 1991</option>
+        </select>
+      </div>
+    </div>
+
+    <h2 id="profileTitle">State Profile</h2>
+    <div class="market-profile" id="profileCards"></div>
+
+    <div class="market-interpretation" id="interpretation"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Side-by-Side Comparison</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Measurement</th><th id="leftHeading">State A</th><th id="rightHeading">State B</th></tr>
+        </thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2 id="rankingTitle">State Ranking</h2>
+    <div class="table-wrap">
+      <table class="market-table">
+        <thead>
+          <tr><th>Rank</th><th>State</th><th>Measurement</th><th>BLS period</th><th>FHFA period</th></tr>
+        </thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Source interpretation</h2>
+    <p><strong>BLS unemployment:</strong> Seasonally adjusted monthly state rates from the Local Area Unemployment Statistics program. The most recent observation may be preliminary and subject to revision.</p>
+    <p><strong>FHFA HPI:</strong> Seasonally adjusted quarterly purchase-only state indexes based on single-family sales transactions financed through the government-sponsored enterprises. Index changes do not represent the appreciation of every property.</p>
+    <p><a class="button secondary" href="government-data.html">Open Government Data Center</a></p>
+  </section>
+</main>
+
+<footer>
+  <strong>Educational research only.</strong> Labor and house-price trends do not determine whether a particular property, state, or transaction is appropriate.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const whole = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  let records = [];
+  let payload = null;
+
+  const meta = {
+    unemployment_rate: {
+      label: "Unemployment rate",
+      format: "percent",
+      direction: "asc"
+    },
+    unemployment_rate_yoy_change: {
+      label: "12-month unemployment-rate change",
+      format: "points",
+      direction: "asc"
+    },
+    fhfa_quarter_change_pct: {
+      label: "FHFA quarterly house-price change",
+      format: "percent",
+      direction: "desc"
+    },
+    fhfa_year_change_pct: {
+      label: "FHFA one-year house-price change",
+      format: "percent",
+      direction: "desc"
+    },
+    fhfa_five_year_change_pct: {
+      label: "FHFA five-year house-price change",
+      format: "percent",
+      direction: "desc"
+    },
+    fhfa_since_1991_pct: {
+      label: "FHFA change since 1991",
+      format: "percent",
+      direction: "desc"
+    }
+  };
+
+  function available(value) {
+    return value !== null && value !== undefined && Number.isFinite(Number(value));
+  }
+
+  function format(value, type) {
+    if (!available(value)) return "N/A";
+    const number = Number(value);
+    if (type === "integer") return whole.format(number);
+    if (type === "points") return (number >= 0 ? "+" : "") + number.toFixed(2) + " points";
+    return (number >= 0 && type === "signedPercent" ? "+" : "") + number.toFixed(2) + "%";
+  }
+
+  function byFips(fips) {
+    return records.find((record) => record.state_fips === fips);
+  }
+
+  function fillSelect(element, selected) {
+    element.innerHTML = records
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((record) => `<option value="${record.state_fips}" ${record.state_fips === selected ? "selected" : ""}>${record.name}</option>`)
+      .join("");
+  }
+
+  function card(label, value, note = "") {
+    return `<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note ? `<div class="metric-note">${note}</div>` : ""}</div>`;
+  }
+
+  function renderProfile() {
+    const state = byFips($("stateSelect").value);
+    if (!state) return;
+
+    $("profileTitle").textContent = state.name + " Labor and House Price Profile";
+    $("profileCards").innerHTML = [
+      card(
+        "Unemployment rate",
+        format(state.unemployment_rate, "percent"),
+        (state.bls_period || "Period unavailable") + (state.unemployment_preliminary ? " · preliminary" : "")
+      ),
+      card(
+        "12-month unemployment change",
+        format(state.unemployment_rate_yoy_change, "points"),
+        "Prior-year rate: " + format(state.unemployment_rate_prior_year, "percent")
+      ),
+      card(
+        "FHFA quarterly change",
+        format(state.fhfa_quarter_change_pct, "percent"),
+        state.fhfa_period || "Period unavailable"
+      ),
+      card(
+        "FHFA one-year change",
+        format(state.fhfa_year_change_pct, "percent")
+      ),
+      card(
+        "FHFA five-year change",
+        format(state.fhfa_five_year_change_pct, "percent")
+      ),
+      card(
+        "FHFA change since 1991",
+        format(state.fhfa_since_1991_pct, "percent")
+      ),
+      card(
+        "FHFA index level",
+        available(state.fhfa_hpi_index_sa) ? Number(state.fhfa_hpi_index_sa).toFixed(2) : "N/A",
+        "Seasonally adjusted index"
+      ),
+      card(
+        "Population change",
+        format(state.population_change_pct, "percent"),
+        state.current_period || ""
+      )
+    ].join("");
+
+    let laborText = "Current BLS labor data is unavailable. Run Update Government Data after uploading Migration 6.";
+    if (available(state.unemployment_rate)) {
+      const direction = available(state.unemployment_rate_yoy_change)
+        ? (state.unemployment_rate_yoy_change > 0 ? "higher" : state.unemployment_rate_yoy_change < 0 ? "lower" : "unchanged")
+        : "not comparable";
+      laborText = `${state.name}'s unemployment rate is ${Number(state.unemployment_rate).toFixed(2)}% and is ${direction} than the same month one year earlier.`;
+    }
+
+    let hpiText = "Current FHFA state data is unavailable. Run Update Government Data after uploading Migration 6.";
+    if (available(state.fhfa_year_change_pct)) {
+      const direction = state.fhfa_year_change_pct > 0 ? "increased" : state.fhfa_year_change_pct < 0 ? "decreased" : "was unchanged";
+      hpiText = `The seasonally adjusted FHFA purchase-only index ${direction} ${Math.abs(Number(state.fhfa_year_change_pct)).toFixed(2)}% over one year through ${state.fhfa_period || "the latest period"}.`;
+    }
+
+    $("interpretation").innerHTML = `
+      <div><strong>Labor-market context</strong><br>${laborText}</div>
+      <div><strong>House-price context</strong><br>${hpiText}</div>
+      <div><strong>Important limitation</strong><br>These state measurements do not show a particular property's rent, value, condition, expenses, financing, or neighborhood conditions.</div>
+    `;
+
+    renderComparison();
+    renderRanking();
+  }
+
+  function comparisonRows(a, b) {
+    const rows = [
+      ["Unemployment rate", "unemployment_rate", "percent"],
+      ["12-month unemployment change", "unemployment_rate_yoy_change", "points"],
+      ["FHFA quarterly change", "fhfa_quarter_change_pct", "percent"],
+      ["FHFA one-year change", "fhfa_year_change_pct", "percent"],
+      ["FHFA five-year change", "fhfa_five_year_change_pct", "percent"],
+      ["FHFA change since 1991", "fhfa_since_1991_pct", "percent"],
+      ["Population change", "population_change_pct", "percent"],
+      ["Housing-unit change", "housing_units_change_pct", "percent"]
+    ];
+    return rows.map((row) => `
+      <tr>
+        <td>${row[0]}</td>
+        <td>${format(a[row[1]], row[2])}</td>
+        <td>${format(b[row[1]], row[2])}</td>
+      </tr>
+    `).join("");
+  }
+
+  function renderComparison() {
+    const a = byFips($("stateSelect").value);
+    const b = byFips($("compareSelect").value);
+    if (!a || !b) return;
+    $("leftHeading").textContent = a.name;
+    $("rightHeading").textContent = b.name;
+    $("comparisonBody").innerHTML = comparisonRows(a, b);
+  }
+
+  function renderRanking() {
+    const metric = $("rankMetric").value;
+    const definition = meta[metric];
+    const selected = $("stateSelect").value;
+    const ranked = records
+      .filter((record) => available(record[metric]))
+      .slice()
+      .sort((a, b) => definition.direction === "asc"
+        ? Number(a[metric]) - Number(b[metric])
+        : Number(b[metric]) - Number(a[metric]));
+
+    $("rankingTitle").textContent = definition.label + " — State Ranking";
+    $("rankingBody").innerHTML = ranked.length
+      ? ranked.map((record, index) => `
+          <tr class="${record.state_fips === selected ? "market-highlight" : ""}">
+            <td><span class="market-rank">${index + 1}</span></td>
+            <td>${record.name}</td>
+            <td>${format(record[metric], definition.format)}</td>
+            <td>${record.bls_period || "N/A"}</td>
+            <td>${record.fhfa_period || "N/A"}</td>
+          </tr>
+        `).join("")
+      : '<tr><td colspan="5">Run Update Government Data to populate this ranking.</td></tr>';
+  }
+
+  fetch("census_state_data.json", { cache: "no-store" })
+    .then((response) => response.json())
+    .then((data) => {
+      payload = data;
+      records = Array.isArray(data.records)
+        ? data.records.filter((record) => record.state_fips && record.name)
+        : [];
+
+      if (!records.length) throw new Error("No state records were found.");
+
+      const defaultState = records.some((record) => record.state_fips === "12")
+        ? "12"
+        : records[0].state_fips;
+      const defaultCompare = records.some((record) => record.state_fips === "48")
+        ? "48"
+        : records[Math.min(1, records.length - 1)].state_fips;
+
+      fillSelect($("stateSelect"), defaultState);
+      fillSelect($("compareSelect"), defaultCompare);
+
+      const blsStatus = data.source_status && data.source_status.bls
+        ? data.source_status.bls.status
+        : "awaiting Migration 6 update";
+      const fhfaStatus = data.source_status && data.source_status.fhfa
+        ? data.source_status.fhfa.status
+        : "awaiting Migration 6 update";
+      $("dataNotice").innerHTML = `<strong>Data status:</strong> BLS: ${blsStatus}. FHFA: ${fhfaStatus}. Last combined update: ${data.updated_at_utc || "not yet run"}.`;
+
+      renderProfile();
+    })
+    .catch((error) => {
+      $("dataNotice").innerHTML = "<strong>Data status:</strong> The combined government-data file could not be loaded.";
+      console.error(error);
+    });
+
+  $("stateSelect").addEventListener("change", renderProfile);
+  $("compareSelect").addEventListener("change", renderComparison);
+  $("rankMetric").addEventListener("change", renderRanking);
+
+  const learningButton = $("learningToggle");
+  function setLearningMode(on) {
+    document.body.classList.toggle("learning-on", on);
+    learningButton.textContent = on ? "🎓 Learning Mode: On" : "🎓 Learning Mode: Off";
+    localStorage.setItem("pid_learning_mode", on ? "on" : "off");
+  }
+  learningButton.addEventListener("click", () => {
+    setLearningMode(!document.body.classList.contains("learning-on"));
+  });
+  setLearningMode(localStorage.getItem("pid_learning_mode") === "on");
+})();
+</script>
+</body>
+</html>

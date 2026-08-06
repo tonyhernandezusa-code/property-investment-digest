@@ -1,11 +1,13 @@
 # Property Investment Digest
 
-## Migration 5
-- Government Data Update Center
-- Automated Census ACS state updater
-- Monthly/manual GitHub Actions workflow
-- Source-permission register
-- Free Census API key stored as a GitHub Secret
-- No private or paid property-data source added
+## Migration 6
+- Existing Census update retained
+- BLS Local Area Unemployment Statistics added
+- FHFA quarterly purchase-only state House Price Index added
+- New Labor & HPI state comparison page
+- State rankings by unemployment and house-price changes
+- No additional API key or repository secret required
+- Existing `Update Government Data` workflow remains in use
+- No paid or privately licensed property-data source added
 
-The workflow compares 2020–2024 ACS 5-Year estimates with 2015–2019 ACS 5-Year estimates.
+After uploading, run the existing **Update Government Data** workflow once to populate the new BLS and FHFA fields.

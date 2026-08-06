@@ -228,3 +228,7 @@
 .market-table td,.market-table th{white-space:nowrap}
 .market-highlight{background:#fff8e8!important}
 .source-chip{display:inline-block;background:#eef4f1;color:var(--accent-2);border-radius:999px;padding:4px 8px;margin:3px 4px 3px 0;font-size:.78rem;font-weight:700}
+
+/* Migration 6: Labor and HPI */
+.source-status-good { color: #0f6b4f; font-weight: 700; }
+.source-status-warning { color: #9a6410; font-weight: 700; }

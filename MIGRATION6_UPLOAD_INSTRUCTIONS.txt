@@ -1,0 +1,43 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 6
+
+THIS MIGRATION ADDS:
+- BLS state unemployment
+- FHFA state House Price Index
+- labor-housing.html
+
+NO NEW SECRET OR WORKFLOW FILE IS REQUIRED.
+The existing CENSUS_API_KEY and Update Government Data workflow are reused.
+
+UPLOAD:
+1. Download and unzip property-investment-digest-migration6.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the unzipped Migration 6 folder.
+5. Drag the selected files into GitHub.
+6. Commit message:
+   Add BLS and FHFA state trends
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+
+RUN THE UPDATE:
+1. Click Actions.
+2. Select Update Government Data.
+3. Click Run workflow.
+4. Confirm branch main.
+5. Click the green Run workflow button.
+6. Wait for the green check.
+7. Wait for Pages deployment.
+8. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/labor-housing.html
+9. Press Ctrl + F5.
+
+TEST:
+- Florida should open first.
+- Texas should be the comparison state.
+- Confirm BLS and FHFA periods appear.
+- Change the state and comparison state.
+- Change several ranking measurements.
+
+IMPORTANT:
+- Do not upload the ZIP itself.
+- Do not modify the original Stock-digest repository.

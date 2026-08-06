@@ -3,7 +3,7 @@
 <title>Government Data Update Center | Property Investment Digest</title>
 <meta name="description" content="Transparent Census data updates, state profiles, update status, and source permission records.">
 <link rel="stylesheet" href="styles.css"></head>
-<body><header><div class="header-wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
+<body><header><div class="header-wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
 <main>
 <div class="toolbar"><button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button></div>
 <section class="hero"><h1>Government Data Update Center</h1><p>This section separates directly retrieved government statistics from user-entered property information and privately licensed data.</p><span class="source-chip">Free Census API</span><span class="source-chip">Monthly automated check</span><span class="source-chip">Transparent source register</span></section>
@@ -22,6 +22,12 @@
 <section class="card" style="margin-top:18px"><h2>Side-by-Side Census Comparison</h2><div class="table-wrap"><table><thead><tr><th>Measurement</th><th id="leftHeading">State A</th><th id="rightHeading">State B</th></tr></thead><tbody id="governmentComparison"></tbody></table></div></section>
 <section class="card" style="margin-top:18px"><h2>Source Permission Register</h2><div class="table-wrap"><table><thead><tr><th>Source</th><th>Status</th><th>Cost</th><th>Publication note</th></tr></thead><tbody id="permissionBody"></tbody></table></div><p><a class="button secondary" href="data-source-register.json">View Source Register JSON</a> <a class="button secondary" href="census_state_data.json">View Census Data JSON</a></p></section>
 <section class="card" style="margin-top:18px"><h2>Update policy</h2><p>The workflow checks monthly, while ACS data generally changes when a new annual vintage is released. The system records the retrieval date, dataset vintage, attribution, and source status.</p><p>No paid property-data vendor has been added.</p></section>
+
+<section class="card" style="margin-top:18px">
+  <h2>BLS Labor and FHFA House Price Data</h2>
+  <p>Migration 6 expands the existing updater to add seasonally adjusted BLS state unemployment rates and FHFA quarterly purchase-only state House Price Index changes. No additional API secret is required.</p>
+  <p><a class="button secondary" href="labor-housing.html">Open Labor &amp; HPI Trends</a></p>
+</section>
 </main>
 <footer><strong>Educational research only.</strong> Government statistics and calculated ratios do not verify a particular property or recommend a location or transaction.</footer>
 <script>
