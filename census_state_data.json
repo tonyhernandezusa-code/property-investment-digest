@@ -1,15 +1,19 @@
 {
-  "schema_version": 2,
-  "updated_at_utc": "2026-08-06T09:15:38+00:00",
+  "schema_version": 3,
+  "updated_at_utc": "2026-08-06T10:10:14+00:00",
   "source": "Official U.S. government data",
-  "dataset": "Census ACS 5-Year, BLS LAUS state unemployment, and FHFA state House Price Index",
+  "dataset": "Census ACS, BLS LAUS, FHFA HPI, HUD FY 2026 FMR, and OpenFEMA Disaster Declarations Summaries",
   "current_vintage": 2024,
   "comparison_vintage": 2019,
   "comparison_note": "ACS compares 2020\u20132024 with the non-overlapping 2015\u20132019 ACS 5-Year estimates.",
+  "hud_fmr_year": 2026,
+  "fema_window_start": "2016-01-01",
   "attribution_notices": [
     "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.",
     "Source: U.S. Bureau of Labor Statistics, Local Area Unemployment Statistics.",
-    "Source: Federal Housing Finance Agency House Price Index\u00ae."
+    "Source: Federal Housing Finance Agency House Price Index\u00ae.",
+    "Source: U.S. Department of Housing and Urban Development, HUD USER, FY 2026 Fair Market Rents.",
+    "Source: Federal Emergency Management Agency, OpenFEMA Disaster Declarations Summaries."
   ],
   "source_status": {
     "census": {
@@ -27,6 +31,14 @@
       "status": "success",
       "message": "51 state records",
       "latest_period": "2026Q1"
+    },
+    "hud": {
+      "status": "error",
+      "message": "HTTP 202 from https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs_revised.xlsx"
+    },
+    "fema": {
+      "status": "error",
+      "message": "HTTP Error 404: Not Found"
     }
   },
   "records": [
@@ -62,7 +74,8 @@
       "fhfa_year_change_pct": 2.36,
       "fhfa_five_year_change_pct": 40.83,
       "fhfa_since_1991_pct": 272.65,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "02",
@@ -96,7 +109,8 @@
       "fhfa_year_change_pct": 5.51,
       "fhfa_five_year_change_pct": 38.0,
       "fhfa_since_1991_pct": 299.38,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "04",
@@ -130,7 +144,8 @@
       "fhfa_year_change_pct": 0.18,
       "fhfa_five_year_change_pct": 36.98,
       "fhfa_since_1991_pct": 468.14,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "05",
@@ -164,7 +179,8 @@
       "fhfa_year_change_pct": 3.35,
       "fhfa_five_year_change_pct": 45.52,
       "fhfa_since_1991_pct": 272.68,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "06",
@@ -198,7 +214,8 @@
       "fhfa_year_change_pct": -0.53,
       "fhfa_five_year_change_pct": 24.27,
       "fhfa_since_1991_pct": 320.62,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "08",
@@ -232,7 +249,8 @@
       "fhfa_year_change_pct": -2.35,
       "fhfa_five_year_change_pct": 22.79,
       "fhfa_since_1991_pct": 574.85,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "09",
@@ -266,7 +284,8 @@
       "fhfa_year_change_pct": 4.67,
       "fhfa_five_year_change_pct": 53.31,
       "fhfa_since_1991_pct": 216.62,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "10",
@@ -300,7 +319,8 @@
       "fhfa_year_change_pct": 1.02,
       "fhfa_five_year_change_pct": 37.64,
       "fhfa_since_1991_pct": 237.85,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "11",
@@ -334,7 +354,8 @@
       "fhfa_year_change_pct": -1.38,
       "fhfa_five_year_change_pct": 0.88,
       "fhfa_since_1991_pct": 504.81,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "12",
@@ -368,7 +389,8 @@
       "fhfa_year_change_pct": -0.49,
       "fhfa_five_year_change_pct": 45.62,
       "fhfa_since_1991_pct": 447.02,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "13",
@@ -402,7 +424,8 @@
       "fhfa_year_change_pct": 0.11,
       "fhfa_five_year_change_pct": 44.73,
       "fhfa_since_1991_pct": 325.45,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "15",
@@ -436,7 +459,8 @@
       "fhfa_year_change_pct": 2.18,
       "fhfa_five_year_change_pct": 39.31,
       "fhfa_since_1991_pct": 301.56,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "16",
@@ -470,7 +494,8 @@
       "fhfa_year_change_pct": 2.81,
       "fhfa_five_year_change_pct": 34.72,
       "fhfa_since_1991_pct": 551.54,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "17",
@@ -504,7 +529,8 @@
       "fhfa_year_change_pct": 7.31,
       "fhfa_five_year_change_pct": 47.17,
       "fhfa_since_1991_pct": 233.04,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "18",
@@ -538,7 +564,8 @@
       "fhfa_year_change_pct": 3.57,
       "fhfa_five_year_change_pct": 44.33,
       "fhfa_since_1991_pct": 272.58,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "19",
@@ -572,7 +599,8 @@
       "fhfa_year_change_pct": 3.48,
       "fhfa_five_year_change_pct": 36.05,
       "fhfa_since_1991_pct": 280.18,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "20",
@@ -606,7 +634,8 @@
       "fhfa_year_change_pct": 2.48,
       "fhfa_five_year_change_pct": 42.46,
       "fhfa_since_1991_pct": 313.13,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "21",
@@ -640,7 +669,8 @@
       "fhfa_year_change_pct": 4.66,
       "fhfa_five_year_change_pct": 44.34,
       "fhfa_since_1991_pct": 306.9,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "22",
@@ -674,7 +704,8 @@
       "fhfa_year_change_pct": 1.29,
       "fhfa_five_year_change_pct": 18.47,
       "fhfa_since_1991_pct": 266.25,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "23",
@@ -708,7 +739,8 @@
       "fhfa_year_change_pct": 2.43,
       "fhfa_five_year_change_pct": 58.29,
       "fhfa_since_1991_pct": 402.14,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "24",
@@ -742,7 +774,8 @@
       "fhfa_year_change_pct": 0.6,
       "fhfa_five_year_change_pct": 28.24,
       "fhfa_since_1991_pct": 268.66,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "25",
@@ -776,7 +809,8 @@
       "fhfa_year_change_pct": 2.22,
       "fhfa_five_year_change_pct": 38.25,
       "fhfa_since_1991_pct": 375.46,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "26",
@@ -810,7 +844,8 @@
       "fhfa_year_change_pct": 3.23,
       "fhfa_five_year_change_pct": 43.43,
       "fhfa_since_1991_pct": 291.7,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "27",
@@ -844,7 +879,8 @@
       "fhfa_year_change_pct": 2.78,
       "fhfa_five_year_change_pct": 29.09,
       "fhfa_since_1991_pct": 334.29,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "28",
@@ -878,7 +914,8 @@
       "fhfa_year_change_pct": 2.09,
       "fhfa_five_year_change_pct": 37.76,
       "fhfa_since_1991_pct": 224.93,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "29",
@@ -912,7 +949,8 @@
       "fhfa_year_change_pct": 3.89,
       "fhfa_five_year_change_pct": 43.06,
       "fhfa_since_1991_pct": 308.41,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "30",
@@ -946,7 +984,8 @@
       "fhfa_year_change_pct": 0.22,
       "fhfa_five_year_change_pct": 44.54,
       "fhfa_since_1991_pct": 626.96,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "31",
@@ -980,7 +1019,8 @@
       "fhfa_year_change_pct": 3.94,
       "fhfa_five_year_change_pct": 39.7,
       "fhfa_since_1991_pct": 340.58,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "32",
@@ -1014,7 +1054,8 @@
       "fhfa_year_change_pct": 0.72,
       "fhfa_five_year_change_pct": 35.48,
       "fhfa_since_1991_pct": 325.52,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "33",
@@ -1048,7 +1089,8 @@
       "fhfa_year_change_pct": 3.31,
       "fhfa_five_year_change_pct": 51.61,
       "fhfa_since_1991_pct": 379.86,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "34",
@@ -1082,7 +1124,8 @@
       "fhfa_year_change_pct": 4.48,
       "fhfa_five_year_change_pct": 54.16,
       "fhfa_since_1991_pct": 338.52,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "35",
@@ -1116,7 +1159,8 @@
       "fhfa_year_change_pct": 2.19,
       "fhfa_five_year_change_pct": 41.33,
       "fhfa_since_1991_pct": 316.62,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "36",
@@ -1150,7 +1194,8 @@
       "fhfa_year_change_pct": 4.4,
       "fhfa_five_year_change_pct": 47.59,
       "fhfa_since_1991_pct": 324.54,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "37",
@@ -1184,7 +1229,8 @@
       "fhfa_year_change_pct": 0.12,
       "fhfa_five_year_change_pct": 48.38,
       "fhfa_since_1991_pct": 338.66,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "38",
@@ -1218,7 +1264,8 @@
       "fhfa_year_change_pct": 4.03,
       "fhfa_five_year_change_pct": 31.99,
       "fhfa_since_1991_pct": 350.79,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "39",
@@ -1252,7 +1299,8 @@
       "fhfa_year_change_pct": 3.24,
       "fhfa_five_year_change_pct": 45.85,
       "fhfa_since_1991_pct": 256.09,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "40",
@@ -1286,7 +1334,8 @@
       "fhfa_year_change_pct": 0.21,
       "fhfa_five_year_change_pct": 36.26,
       "fhfa_since_1991_pct": 280.37,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "41",
@@ -1320,7 +1369,8 @@
       "fhfa_year_change_pct": 0.57,
       "fhfa_five_year_change_pct": 21.98,
       "fhfa_since_1991_pct": 530.22,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "42",
@@ -1354,7 +1404,8 @@
       "fhfa_year_change_pct": 3.8,
       "fhfa_five_year_change_pct": 41.92,
       "fhfa_since_1991_pct": 277.52,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "44",
@@ -1388,7 +1439,8 @@
       "fhfa_year_change_pct": -0.69,
       "fhfa_five_year_change_pct": 49.5,
       "fhfa_since_1991_pct": 327.62,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "45",
@@ -1422,7 +1474,8 @@
       "fhfa_year_change_pct": 1.5,
       "fhfa_five_year_change_pct": 52.34,
       "fhfa_since_1991_pct": 344.43,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "46",
@@ -1456,7 +1509,8 @@
       "fhfa_year_change_pct": 2.78,
       "fhfa_five_year_change_pct": 40.2,
       "fhfa_since_1991_pct": 401.05,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "47",
@@ -1490,7 +1544,8 @@
       "fhfa_year_change_pct": 2.23,
       "fhfa_five_year_change_pct": 47.17,
       "fhfa_since_1991_pct": 382.79,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "48",
@@ -1524,7 +1579,8 @@
       "fhfa_year_change_pct": -1.63,
       "fhfa_five_year_change_pct": 29.73,
       "fhfa_since_1991_pct": 339.81,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "49",
@@ -1558,7 +1614,8 @@
       "fhfa_year_change_pct": -0.07,
       "fhfa_five_year_change_pct": 32.58,
       "fhfa_since_1991_pct": 621.91,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "50",
@@ -1592,7 +1649,8 @@
       "fhfa_year_change_pct": 4.95,
       "fhfa_five_year_change_pct": 57.55,
       "fhfa_since_1991_pct": 345.13,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "51",
@@ -1626,7 +1684,8 @@
       "fhfa_year_change_pct": 2.36,
       "fhfa_five_year_change_pct": 41.82,
       "fhfa_since_1991_pct": 330.69,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "53",
@@ -1660,7 +1719,8 @@
       "fhfa_year_change_pct": -0.36,
       "fhfa_five_year_change_pct": 27.01,
       "fhfa_since_1991_pct": 485.94,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "54",
@@ -1694,7 +1754,8 @@
       "fhfa_year_change_pct": 3.99,
       "fhfa_five_year_change_pct": 40.32,
       "fhfa_since_1991_pct": 236.32,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "55",
@@ -1728,7 +1789,8 @@
       "fhfa_year_change_pct": 4.49,
       "fhfa_five_year_change_pct": 50.31,
       "fhfa_since_1991_pct": 368.49,
-      "fhfa_warning": null
+      "fhfa_warning": null,
+      "hud_annual_fmr2_to_income_pct": null
     },
     {
       "state_fips": "56",
@@ -1762,7 +1824,10 @@
       "fhfa_year_change_pct": -0.04,
       "fhfa_five_year_change_pct": 36.94,
       "fhfa_since_1991_pct": 446.91,
-      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years"
+      "fhfa_warning": "* Note that this state has fewer than 15,000 transactions over the latest ten years",
+      "hud_annual_fmr2_to_income_pct": null
     }
-  ]
+  ],
+  "hud_fmr_areas": [],
+  "fema_recent_declarations": {}
 }

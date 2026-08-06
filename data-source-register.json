@@ -1,6 +1,6 @@
 {
-  "register_version": 2,
-  "last_reviewed_utc": "2026-08-06T09:15:38+00:00",
+  "register_version": 3,
+  "last_reviewed_utc": "2026-08-06T10:10:14+00:00",
   "sources": [
     {
       "source_id": "census_acs_5year",
@@ -34,14 +34,26 @@
       "official_download": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_state.txt"
     },
     {
-      "source_id": "hud",
-      "source_name": "U.S. Department of Housing and Urban Development",
-      "status": "planned \u2014 dataset-by-dataset review required"
+      "source_id": "hud_fmr_2026",
+      "source_name": "U.S. Department of Housing and Urban Development \u2014 FY 2026 Fair Market Rents",
+      "status": "error",
+      "cost": "Official downloadable government dataset",
+      "data_used": "County/town FMRs for efficiency through four-bedroom units and transparent state summaries.",
+      "attribution": "Source: U.S. Department of Housing and Urban Development, HUD USER, FY 2026 Fair Market Rents.",
+      "official_dataset_page": "https://www.huduser.gov/portal/datasets/fmr.html",
+      "official_download": "https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs_revised.xlsx",
+      "interpretation_note": "FMR is a gross-rent program benchmark, not an asking-rent estimate or a property valuation."
     },
     {
-      "source_id": "openfema",
-      "source_name": "OpenFEMA",
-      "status": "planned \u2014 dataset-by-dataset review required"
+      "source_id": "openfema_disaster_declarations",
+      "source_name": "Federal Emergency Management Agency \u2014 OpenFEMA Disaster Declarations Summaries",
+      "status": "error",
+      "cost": "Free public API; no registration required",
+      "data_used": "Unique federal disaster declarations by state for a rolling ten-year window.",
+      "attribution": "Source: Federal Emergency Management Agency, OpenFEMA Disaster Declarations Summaries.",
+      "official_dataset_page": "https://www.fema.gov/about/openfema/disaster-declarations-summaries",
+      "official_api": "https://www.fema.gov/api/open/v1/DisasterDeclarationsSummaries",
+      "interpretation_note": "Declaration history is not a parcel-level hazard, flood zone, insurance, or future-loss determination."
     },
     {
       "source_id": "commercial_vendor",

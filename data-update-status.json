@@ -1,7 +1,7 @@
 {
-  "updated_at_utc": "2026-08-06T09:15:38+00:00",
-  "status": "success",
-  "message": "Census: success; BLS: success; FHFA: success.",
+  "updated_at_utc": "2026-08-06T10:10:14+00:00",
+  "status": "partial success",
+  "message": "CENSUS: success; BLS: success; FHFA: success; HUD: error; FEMA: error",
   "sources": {
     "census": {
       "status": "success",
@@ -18,7 +18,17 @@
       "status": "success",
       "message": "51 state records",
       "latest_period": "2026Q1"
+    },
+    "hud": {
+      "status": "error",
+      "message": "HTTP 202 from https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs_revised.xlsx"
+    },
+    "fema": {
+      "status": "error",
+      "message": "HTTP Error 404: Not Found"
     }
   },
-  "records_written": 51
+  "records_written": 51,
+  "hud_area_records": 0,
+  "fema_window_start": "2016-01-01"
 }
