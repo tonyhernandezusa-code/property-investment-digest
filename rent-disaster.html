@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HUD Rent and FEMA Disaster Context | Property Investment Digest</title>
+  <meta name="description" content="County HUD Fair Market Rents and state FEMA disaster-declaration history from official government sources.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+  </div>
+
+  <section class="hero">
+    <h1>HUD Rent and FEMA Disaster Context</h1>
+    <p>Look up FY 2026 HUD Fair Market Rents by county or town and review a state’s recent federal disaster-declaration history.</p>
+    <span class="source-chip">HUD FY 2026 FMR</span>
+    <span class="source-chip">OpenFEMA</span>
+    <span class="source-chip">No new API secret</span>
+  </section>
+
+  <div class="notice" id="statusNotice">
+    <strong>Data status:</strong> Loading the combined government-data file.
+  </div>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> HUD Fair Market Rent is a program benchmark for gross rent, not the asking rent for a particular listing. FEMA declarations describe federal disaster actions and history; they do not determine parcel-level hazard, flood zone, insurance cost, or future loss.
+  </div>
+
+  <section class="card">
+    <div class="market-controls">
+      <div>
+        <label for="stateSelect">State</label>
+        <select id="stateSelect"></select>
+      </div>
+      <div>
+        <label for="compareSelect">Compare with</label>
+        <select id="compareSelect"></select>
+      </div>
+      <div>
+        <label for="areaSearch">Search county, town, or HUD area</label>
+        <input id="areaSearch" type="search" placeholder="Example: Miami-Dade">
+      </div>
+    </div>
+
+    <h2 id="profileTitle">State Rent and Disaster Profile</h2>
+    <div class="market-profile" id="profileCards"></div>
+    <div class="market-interpretation" id="interpretation"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>State Comparison</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Measurement</th><th id="leftHeading">State A</th><th id="rightHeading">State B</th></tr></thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2 id="areaTitle">HUD FY 2026 Area Lookup</h2>
+    <p class="muted">The table shows HUD’s listed county/town records. Similar rents may repeat when multiple counties share the same HUD FMR area.</p>
+    <div class="table-wrap">
+      <table class="market-table">
+        <thead>
+          <tr><th>County/Town</th><th>HUD Area</th><th>Studio</th><th>1 BR</th><th>2 BR</th><th>3 BR</th><th>4 BR</th></tr>
+        </thead>
+        <tbody id="areaBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2 id="disasterTitle">Recent FEMA Declarations</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Number</th><th>Type</th><th>Incident</th><th>Title</th><th>Individual Assistance</th></tr>
+        </thead>
+        <tbody id="disasterBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Important distinctions</h2>
+    <p><strong>HUD FMR:</strong> A gross-rent benchmark used for federal housing programs. It includes shelter rent and specified tenant-paid utilities, and it is not a live market-rent quote.</p>
+    <p><strong>FEMA declaration history:</strong> A record of federal declarations. More declarations can reflect exposure, event frequency, declaration practices, geography, or other factors. It is not a property-risk score.</p>
+    <p><a class="button secondary" href="government-data.html">Open Government Data Center</a></p>
+  </section>
+</main>
+
+<footer>
+  <strong>Educational research only.</strong> Verify current HUD figures, local payment standards, hazard maps, insurance, property condition, and all transaction facts independently.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+  const money = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  });
+
+  let payload = null;
+  let states = [];
+  let areas = [];
+  let recentDeclarations = {};
+
+  function available(value) {
+    return value !== null && value !== undefined && Number.isFinite(Number(value));
+  }
+
+  function cash(value) {
+    return available(value) ? money.format(Number(value)) : "N/A";
+  }
+
+  function number(value) {
+    return available(value) ? Number(value).toLocaleString("en-US") : "N/A";
+  }
+
+  function percent(value) {
+    return available(value) ? Number(value).toFixed(2) + "%" : "N/A";
+  }
+
+  function byFips(fips) {
+    return states.find((state) => state.state_fips === fips);
+  }
+
+  function fillSelect(element, selected) {
+    element.innerHTML = states
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((state) => `<option value="${state.state_fips}" ${state.state_fips === selected ? "selected" : ""}>${state.name}</option>`)
+      .join("");
+  }
+
+  function card(label, value, note = "") {
+    return `<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note ? `<div class="metric-note">${note}</div>` : ""}</div>`;
+  }
+
+  function renderProfile() {
+    const state = byFips($("stateSelect").value);
+    if (!state) return;
+
+    $("profileTitle").textContent = state.name + " Rent and Disaster Profile";
+    $("profileCards").innerHTML = [
+      card("Median listed studio FMR", cash(state.hud_median_fmr_0), "FY " + (state.hud_fmr_year || "N/A")),
+      card("Median listed 1-bedroom FMR", cash(state.hud_median_fmr_1)),
+      card("Median listed 2-bedroom FMR", cash(state.hud_median_fmr_2)),
+      card("Median listed 3-bedroom FMR", cash(state.hud_median_fmr_3)),
+      card("Median listed 4-bedroom FMR", cash(state.hud_median_fmr_4)),
+      card("2-bedroom FMR range", available(state.hud_min_fmr_2) ? cash(state.hud_min_fmr_2) + "–" + cash(state.hud_max_fmr_2) : "N/A"),
+      card("Annual 2-bedroom FMR ÷ income", percent(state.hud_annual_fmr2_to_income_pct), "Broad state comparison"),
+      card("HUD county/town records", number(state.hud_fmr_area_count)),
+      card("Federal declarations", number(state.fema_declarations_10yr), "Since " + (payload.fema_window_start || "N/A")),
+      card("Major disasters", number(state.fema_major_disasters_10yr)),
+      card("Fire-management declarations", number(state.fema_fire_management_10yr)),
+      card("Declarations with individual assistance", number(state.fema_individual_assistance_10yr)),
+      card("Most frequent incident type", state.fema_top_incident_type_10yr || "N/A"),
+      card("Latest declaration", state.fema_latest_declaration_date || "N/A", state.fema_latest_title || "")
+    ].join("");
+
+    const rentText = available(state.hud_median_fmr_2)
+      ? `The median of the listed HUD county/town two-bedroom FMR records is ${cash(state.hud_median_fmr_2)} per month, with a listed range from ${cash(state.hud_min_fmr_2)} to ${cash(state.hud_max_fmr_2)}. This is not a population-weighted statewide market rent.`
+      : "Run Update Government Data after uploading Migration 7 to populate HUD FMR records.";
+
+    const disasterText = available(state.fema_declarations_10yr)
+      ? `${state.name} has ${number(state.fema_declarations_10yr)} unique federal declarations in the displayed window. The most frequent incident category is ${state.fema_top_incident_type_10yr || "unavailable"}.`
+      : "Run Update Government Data after uploading Migration 7 to populate FEMA declaration history.";
+
+    $("interpretation").innerHTML = `
+      <div><strong>HUD rent context</strong><br>${rentText}</div>
+      <div><strong>FEMA declaration context</strong><br>${disasterText}</div>
+      <div><strong>Not a property conclusion</strong><br>These measurements do not verify a property’s achievable rent, voucher payment standard, flood zone, insurability, condition, expenses, or future performance.</div>
+    `;
+
+    renderComparison();
+    renderAreas();
+    renderDisasters();
+  }
+
+  function comparisonRows(a, b) {
+    const rows = [
+      ["Median listed 2-bedroom FMR", "hud_median_fmr_2", "money"],
+      ["Minimum listed 2-bedroom FMR", "hud_min_fmr_2", "money"],
+      ["Maximum listed 2-bedroom FMR", "hud_max_fmr_2", "money"],
+      ["Annual 2-bedroom FMR ÷ income", "hud_annual_fmr2_to_income_pct", "percent"],
+      ["Federal declarations", "fema_declarations_10yr", "number"],
+      ["Major disasters", "fema_major_disasters_10yr", "number"],
+      ["Emergencies", "fema_emergencies_10yr", "number"],
+      ["Fire-management declarations", "fema_fire_management_10yr", "number"],
+      ["Declarations with individual assistance", "fema_individual_assistance_10yr", "number"]
+    ];
+
+    function format(value, type) {
+      if (type === "money") return cash(value);
+      if (type === "percent") return percent(value);
+      return number(value);
+    }
+
+    return rows.map((row) => `
+      <tr>
+        <td>${row[0]}</td>
+        <td>${format(a[row[1]], row[2])}</td>
+        <td>${format(b[row[1]], row[2])}</td>
+      </tr>
+    `).join("");
+  }
+
+  function renderComparison() {
+    const a = byFips($("stateSelect").value);
+    const b = byFips($("compareSelect").value);
+    if (!a || !b) return;
+    $("leftHeading").textContent = a.name;
+    $("rightHeading").textContent = b.name;
+    $("comparisonBody").innerHTML = comparisonRows(a, b);
+  }
+
+  function renderAreas() {
+    const state = byFips($("stateSelect").value);
+    if (!state) return;
+    const query = $("areaSearch").value.trim().toLowerCase();
+    const rows = areas
+      .filter((area) => area.state_fips === state.state_fips)
+      .filter((area) => {
+        if (!query) return true;
+        return [area.county_name, area.town_name, area.area_name]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      })
+      .slice(0, 250);
+
+    $("areaTitle").textContent = state.name + " HUD FY 2026 Area Lookup";
+    $("areaBody").innerHTML = rows.length
+      ? rows.map((area) => {
+          const place = [area.county_name, area.town_name].filter(Boolean).join(" — ");
+          return `<tr>
+            <td>${place || "Unnamed area"}</td>
+            <td>${area.area_name || "N/A"}</td>
+            <td>${cash(area.fmr_0)}</td>
+            <td>${cash(area.fmr_1)}</td>
+            <td>${cash(area.fmr_2)}</td>
+            <td>${cash(area.fmr_3)}</td>
+            <td>${cash(area.fmr_4)}</td>
+          </tr>`;
+        }).join("")
+      : '<tr><td colspan="7">No matching HUD records are available. Run Update Government Data after uploading Migration 7.</td></tr>';
+  }
+
+  function renderDisasters() {
+    const state = byFips($("stateSelect").value);
+    if (!state) return;
+    const declarations = recentDeclarations[state.state_fips] || [];
+    $("disasterTitle").textContent = state.name + " Recent FEMA Declarations";
+    $("disasterBody").innerHTML = declarations.length
+      ? declarations.map((item) => `<tr>
+          <td>${item.declaration_date || "N/A"}</td>
+          <td>${item.disaster_number || "N/A"}</td>
+          <td>${item.declaration_type || "N/A"}</td>
+          <td>${item.incident_type || "N/A"}</td>
+          <td>${item.title || "N/A"}</td>
+          <td>${item.individual_assistance ? "Yes" : "No"}</td>
+        </tr>`).join("")
+      : '<tr><td colspan="6">No declaration records are available. Run Update Government Data after uploading Migration 7.</td></tr>';
+  }
+
+  fetch("census_state_data.json", { cache: "no-store" })
+    .then((response) => response.json())
+    .then((data) => {
+      payload = data;
+      states = Array.isArray(data.records)
+        ? data.records.filter((record) => record.state_fips && record.name)
+        : [];
+      areas = Array.isArray(data.hud_fmr_areas) ? data.hud_fmr_areas : [];
+      recentDeclarations = data.fema_recent_declarations || {};
+
+      if (!states.length) throw new Error("No state records were found.");
+
+      const first = states.some((state) => state.state_fips === "12")
+        ? "12"
+        : states[0].state_fips;
+      const compare = states.some((state) => state.state_fips === "48")
+        ? "48"
+        : states[Math.min(1, states.length - 1)].state_fips;
+
+      fillSelect($("stateSelect"), first);
+      fillSelect($("compareSelect"), compare);
+
+      const hudStatus = data.source_status && data.source_status.hud
+        ? data.source_status.hud.status
+        : "awaiting Migration 7 update";
+      const femaStatus = data.source_status && data.source_status.fema
+        ? data.source_status.fema.status
+        : "awaiting Migration 7 update";
+      $("statusNotice").innerHTML = `<strong>Data status:</strong> HUD: ${hudStatus}. FEMA: ${femaStatus}. Last combined update: ${data.updated_at_utc || "not yet run"}.`;
+
+      renderProfile();
+    })
+    .catch((error) => {
+      $("statusNotice").innerHTML = "<strong>Data status:</strong> The combined government-data file could not be loaded.";
+      console.error(error);
+    });
+
+  $("stateSelect").addEventListener("change", renderProfile);
+  $("compareSelect").addEventListener("change", renderComparison);
+  $("areaSearch").addEventListener("input", renderAreas);
+
+  const learningButton = $("learningToggle");
+  function setLearningMode(on) {
+    document.body.classList.toggle("learning-on", on);
+    learningButton.textContent = on ? "🎓 Learning Mode: On" : "🎓 Learning Mode: Off";
+    localStorage.setItem("pid_learning_mode", on ? "on" : "off");
+  }
+  learningButton.addEventListener("click", () => {
+    setLearningMode(!document.body.classList.contains("learning-on"));
+  });
+  setLearningMode(localStorage.getItem("pid_learning_mode") === "on");
+})();
+</script>
+</body>
+</html>

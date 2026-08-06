@@ -29,9 +29,13 @@ import datetime as dt
 import io
 import json
 import os
+import re
+import statistics
 import sys
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -84,6 +88,22 @@ FHFA_ATTRIBUTION = "Source: Federal Housing Finance Agency House Price Index®."
 BLS_ENDPOINT = "https://api.bls.gov/publicAPI/v1/timeseries/data/"
 FHFA_STATE_HPI_URL = (
     "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_state.txt"
+)
+HUD_FMR_YEAR = 2026
+HUD_FMR_URL = (
+    "https://www.huduser.gov/portal/datasets/fmr/fmr2026/"
+    "FY26_FMRs_revised.xlsx"
+)
+OPENFEMA_ENDPOINT = (
+    "https://www.fema.gov/api/open/v1/DisasterDeclarationsSummaries"
+)
+HUD_ATTRIBUTION = (
+    "Source: U.S. Department of Housing and Urban Development, "
+    "HUD USER, FY 2026 Fair Market Rents."
+)
+FEMA_ATTRIBUTION = (
+    "Source: Federal Emergency Management Agency, "
+    "OpenFEMA Disaster Declarations Summaries."
 )
 
 
@@ -140,6 +160,20 @@ def read_text_url(url: str) -> str:
         if response.status != 200:
             raise RuntimeError(f"HTTP {response.status} from {url}")
         return response.read().decode("utf-8-sig")
+
+
+def read_binary_url(url: str) -> bytes:
+    request = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Property Investment Digest educational government-data updater",
+            "Accept": "application/octet-stream",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=90) as response:
+        if response.status != 200:
+            raise RuntimeError(f"HTTP {response.status} from {url}")
+        return response.read()
 
 
 # ---------------- Census ----------------
@@ -424,11 +458,373 @@ def build_fhfa_records(text: str) -> dict[str, dict[str, Any]]:
     return result
 
 
+
+
+# ---------------- HUD Fair Market Rents ----------------
+
+def load_hud_fmr_bytes() -> bytes:
+    fixture = os.environ.get("HUD_FMR_FIXTURE", "").strip()
+    return Path(fixture).read_bytes() if fixture else read_binary_url(HUD_FMR_URL)
+
+
+def column_index(cell_reference: str) -> int:
+    letters = "".join(character for character in cell_reference if character.isalpha())
+    result = 0
+    for character in letters.upper():
+        result = result * 26 + (ord(character) - 64)
+    return max(0, result - 1)
+
+
+def xlsx_rows(workbook_bytes: bytes) -> list[list[Any]]:
+    namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    all_rows: list[list[Any]] = []
+
+    with zipfile.ZipFile(io.BytesIO(workbook_bytes)) as workbook:
+        shared_strings: list[str] = []
+        if "xl/sharedStrings.xml" in workbook.namelist():
+            root = ET.fromstring(workbook.read("xl/sharedStrings.xml"))
+            for item in root.findall(f"{namespace}si"):
+                text_parts = [
+                    node.text or ""
+                    for node in item.iter(f"{namespace}t")
+                ]
+                shared_strings.append("".join(text_parts))
+
+        sheet_files = sorted(
+            name for name in workbook.namelist()
+            if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", name)
+        )
+        for sheet_file in sheet_files:
+            root = ET.fromstring(workbook.read(sheet_file))
+            for row_node in root.iter(f"{namespace}row"):
+                row: list[Any] = []
+                for cell in row_node.findall(f"{namespace}c"):
+                    index = column_index(cell.get("r", "A1"))
+                    while len(row) <= index:
+                        row.append(None)
+                    cell_type = cell.get("t", "")
+                    value_node = cell.find(f"{namespace}v")
+                    value: Any = None
+                    if cell_type == "inlineStr":
+                        value = "".join(
+                            node.text or ""
+                            for node in cell.iter(f"{namespace}t")
+                        )
+                    elif value_node is not None:
+                        raw_value = value_node.text or ""
+                        if cell_type == "s":
+                            try:
+                                value = shared_strings[int(raw_value)]
+                            except (ValueError, IndexError):
+                                value = raw_value
+                        elif cell_type == "b":
+                            value = raw_value == "1"
+                        else:
+                            value = raw_value
+                    row[index] = value
+                if any(value not in (None, "") for value in row):
+                    all_rows.append(row)
+
+    return all_rows
+
+
+def normalize_header(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
+HUD_HEADER_ALIASES = {
+    "fips": {"fips2010", "fips", "fipscode", "geoid"},
+    "fmr_0": {"fmr0", "fmr0bdr", "efficiency", "studio", "0br"},
+    "fmr_1": {"fmr1", "fmr1bdr", "onebedroom", "1br"},
+    "fmr_2": {"fmr2", "fmr2bdr", "twobedroom", "2br"},
+    "fmr_3": {"fmr3", "fmr3bdr", "threebedroom", "3br"},
+    "fmr_4": {"fmr4", "fmr4bdr", "fourbedroom", "4br"},
+    "state_alpha": {"statealpha", "statecode", "stateabbr", "state"},
+    "county_name": {"countyname", "county"},
+    "town_name": {"countytownname", "townname", "town"},
+    "area_name": {"areaname", "hudareaname", "metroname", "area"},
+    "metro_code": {"metrocode", "hudareacode", "areacode"},
+    "population": {"population", "pop2017", "pop2020", "pop2021", "pop2022", "pop2023"},
+}
+
+
+def locate_hud_header(rows: list[list[Any]]) -> tuple[int, dict[str, int]]:
+    for row_number, row in enumerate(rows[:80]):
+        normalized = {
+            normalize_header(value): index
+            for index, value in enumerate(row)
+            if normalize_header(value)
+        }
+        mapping: dict[str, int] = {}
+        for field, aliases in HUD_HEADER_ALIASES.items():
+            for alias in aliases:
+                if alias in normalized:
+                    mapping[field] = normalized[alias]
+                    break
+        if {"fips", "fmr_2", "county_name"}.issubset(mapping):
+            return row_number, mapping
+    raise RuntimeError("HUD FMR workbook header row was not recognized.")
+
+
+def row_item(row: list[Any], mapping: dict[str, int], field: str) -> Any:
+    index = mapping.get(field)
+    return row[index] if index is not None and index < len(row) else None
+
+
+def clean_fips(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return ""
+    try:
+        raw = str(int(float(raw)))
+    except ValueError:
+        raw = "".join(character for character in raw if character.isdigit())
+    return raw.zfill(10)
+
+
+def rent_number(value: Any) -> int | None:
+    try:
+        number = int(round(float(str(value).replace(",", "").replace("$", ""))))
+    except (TypeError, ValueError):
+        return None
+    return number if number > 0 else None
+
+
+def build_hud_fmr_records(workbook_bytes: bytes) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
+    rows = xlsx_rows(workbook_bytes)
+    header_row, mapping = locate_hud_header(rows)
+    records: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str]] = set()
+
+    for row in rows[header_row + 1:]:
+        fips = clean_fips(row_item(row, mapping, "fips"))
+        if len(fips) < 2:
+            continue
+        state_fips = fips[:2]
+        default_abbr = STATE_FIPS.get(state_fips, ("", ""))[0]
+        state_value = str(row_item(row, mapping, "state_alpha") or "").strip()
+        state_abbr = state_value.upper() if len(state_value) == 2 and state_value.isalpha() else default_abbr
+        if state_abbr not in ABBR_TO_FIPS:
+            continue
+        state_fips = ABBR_TO_FIPS[state_abbr]
+
+        rents = {
+            field: rent_number(row_item(row, mapping, field))
+            for field in ("fmr_0", "fmr_1", "fmr_2", "fmr_3", "fmr_4")
+        }
+        if rents["fmr_2"] is None:
+            continue
+
+        county_name = str(row_item(row, mapping, "county_name") or "").strip()
+        town_name = str(row_item(row, mapping, "town_name") or "").strip()
+        area_name = str(row_item(row, mapping, "area_name") or "").strip()
+        key = (fips, town_name, area_name)
+        if key in seen:
+            continue
+        seen.add(key)
+
+        records.append({
+            "fips": fips,
+            "state_fips": state_fips,
+            "state_abbr": state_abbr,
+            "state_name": STATE_FIPS[state_fips][1],
+            "county_name": county_name,
+            "town_name": town_name,
+            "area_name": area_name,
+            "metro_code": str(row_item(row, mapping, "metro_code") or "").strip(),
+            "population_reference": valid_number(row_item(row, mapping, "population")),
+            "fmr_year": HUD_FMR_YEAR,
+            **rents,
+        })
+
+    if len(records) < 1000:
+        raise RuntimeError(f"Only {len(records)} HUD FMR area records were parsed.")
+
+    summaries: dict[str, dict[str, Any]] = {}
+    for state_fips in STATE_FIPS:
+        state_rows = [record for record in records if record["state_fips"] == state_fips]
+        if not state_rows:
+            continue
+
+        def median_rent(field: str) -> int | None:
+            values = [record[field] for record in state_rows if record.get(field) is not None]
+            return int(round(statistics.median(values))) if values else None
+
+        two_bedroom = [record["fmr_2"] for record in state_rows if record.get("fmr_2") is not None]
+        summaries[state_fips] = {
+            "hud_fmr_year": HUD_FMR_YEAR,
+            "hud_fmr_area_count": len(state_rows),
+            "hud_median_fmr_0": median_rent("fmr_0"),
+            "hud_median_fmr_1": median_rent("fmr_1"),
+            "hud_median_fmr_2": median_rent("fmr_2"),
+            "hud_median_fmr_3": median_rent("fmr_3"),
+            "hud_median_fmr_4": median_rent("fmr_4"),
+            "hud_min_fmr_2": min(two_bedroom) if two_bedroom else None,
+            "hud_max_fmr_2": max(two_bedroom) if two_bedroom else None,
+        }
+
+    return sorted(
+        records,
+        key=lambda item: (
+            item["state_name"],
+            item["county_name"],
+            item["town_name"],
+            item["area_name"],
+        ),
+    ), summaries
+
+
+# ---------------- OpenFEMA Disaster Declarations ----------------
+
+def extract_fema_rows(payload: Any) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return payload
+    if not isinstance(payload, dict):
+        return []
+    for key in (
+        "DisasterDeclarationsSummaries",
+        "disasterDeclarationsSummaries",
+        "data",
+        "records",
+    ):
+        value = payload.get(key)
+        if isinstance(value, list):
+            return value
+    for value in payload.values():
+        if isinstance(value, list):
+            return value
+    return []
+
+
+def fetch_fema_rows(window_start: str) -> list[dict[str, Any]]:
+    fixture = os.environ.get("FEMA_FIXTURE", "").strip()
+    if fixture:
+        return extract_fema_rows(
+            json.loads(Path(fixture).read_text(encoding="utf-8"))
+        )
+
+    fields = (
+        "disasterNumber,state,declarationDate,declarationType,"
+        "incidentType,title,ihProgramDeclared,iaProgramDeclared,"
+        "paProgramDeclared"
+    )
+    all_rows: list[dict[str, Any]] = []
+    page_size = 1000
+
+    for skip in range(0, 100000, page_size):
+        params = {
+            "$select": fields,
+            "$filter": (
+                "declarationDate ge "
+                f"'{window_start}T00:00:00.000z'"
+            ),
+            "$orderby": "declarationDate desc",
+            "$top": str(page_size),
+            "$skip": str(skip),
+        }
+        url = OPENFEMA_ENDPOINT + "?" + urllib.parse.urlencode(params)
+        page_rows = extract_fema_rows(read_json_url(url))
+        all_rows.extend(page_rows)
+        if len(page_rows) < page_size:
+            break
+    return all_rows
+
+
+def truthy(value: Any) -> bool:
+    return value is True or str(value).strip().lower() in {"true", "1", "yes", "y"}
+
+
+def build_fema_records(
+    rows: list[dict[str, Any]],
+) -> tuple[dict[str, dict[str, Any]], dict[str, list[dict[str, Any]]]]:
+    unique: dict[tuple[str, str], dict[str, Any]] = {}
+
+    for row in rows:
+        state_abbr = str(row.get("state") or "").strip().upper()
+        state_fips = ABBR_TO_FIPS.get(state_abbr)
+        disaster_number = str(row.get("disasterNumber") or "").strip()
+        if not state_fips or not disaster_number:
+            continue
+
+        key = (state_fips, disaster_number)
+        declaration = unique.setdefault(key, {
+            "state_fips": state_fips,
+            "state_abbr": state_abbr,
+            "disaster_number": disaster_number,
+            "declaration_date": str(row.get("declarationDate") or "")[:10],
+            "declaration_type": str(row.get("declarationType") or "").strip(),
+            "incident_type": str(row.get("incidentType") or "").strip(),
+            "title": str(row.get("title") or "").strip(),
+            "individual_assistance": False,
+            "public_assistance": False,
+        })
+        declaration["individual_assistance"] = (
+            declaration["individual_assistance"]
+            or truthy(row.get("ihProgramDeclared"))
+            or truthy(row.get("iaProgramDeclared"))
+        )
+        declaration["public_assistance"] = (
+            declaration["public_assistance"]
+            or truthy(row.get("paProgramDeclared"))
+        )
+
+    by_state: dict[str, list[dict[str, Any]]] = {}
+    for declaration in unique.values():
+        by_state.setdefault(declaration["state_fips"], []).append(declaration)
+
+    summaries: dict[str, dict[str, Any]] = {}
+    recent: dict[str, list[dict[str, Any]]] = {}
+
+    for state_fips, declarations in by_state.items():
+        declarations.sort(
+            key=lambda item: item.get("declaration_date", ""),
+            reverse=True,
+        )
+        incident_counts: dict[str, int] = {}
+        for declaration in declarations:
+            incident = declaration.get("incident_type") or "Other/Unspecified"
+            incident_counts[incident] = incident_counts.get(incident, 0) + 1
+
+        latest = declarations[0]
+        top_incident = max(
+            incident_counts.items(),
+            key=lambda item: (item[1], item[0]),
+        )[0] if incident_counts else None
+
+        summaries[state_fips] = {
+            "fema_declarations_10yr": len(declarations),
+            "fema_major_disasters_10yr": sum(
+                item["declaration_type"] == "DR" for item in declarations
+            ),
+            "fema_emergencies_10yr": sum(
+                item["declaration_type"] == "EM" for item in declarations
+            ),
+            "fema_fire_management_10yr": sum(
+                item["declaration_type"] == "FM" for item in declarations
+            ),
+            "fema_individual_assistance_10yr": sum(
+                item["individual_assistance"] for item in declarations
+            ),
+            "fema_public_assistance_10yr": sum(
+                item["public_assistance"] for item in declarations
+            ),
+            "fema_top_incident_type_10yr": top_incident,
+            "fema_latest_declaration_date": latest.get("declaration_date"),
+            "fema_latest_disaster_number": latest.get("disaster_number"),
+            "fema_latest_declaration_type": latest.get("declaration_type"),
+            "fema_latest_incident_type": latest.get("incident_type"),
+            "fema_latest_title": latest.get("title"),
+        }
+        recent[state_fips] = declarations[:10]
+
+    return summaries, recent
+
+
 # ---------------- Merge and outputs ----------------
 
 def source_register(now: str, statuses: dict[str, Any]) -> dict[str, Any]:
     return {
-        "register_version": 2,
+        "register_version": 3,
         "last_reviewed_utc": now,
         "sources": [
             {
@@ -487,14 +883,49 @@ def source_register(now: str, statuses: dict[str, Any]) -> dict[str, Any]:
                 "official_download": FHFA_STATE_HPI_URL,
             },
             {
-                "source_id": "hud",
-                "source_name": "U.S. Department of Housing and Urban Development",
-                "status": "planned — dataset-by-dataset review required",
+                "source_id": "hud_fmr_2026",
+                "source_name": (
+                    "U.S. Department of Housing and Urban Development — "
+                    "FY 2026 Fair Market Rents"
+                ),
+                "status": statuses["hud"]["status"],
+                "cost": "Official downloadable government dataset",
+                "data_used": (
+                    "County/town FMRs for efficiency through four-bedroom "
+                    "units and transparent state summaries."
+                ),
+                "attribution": HUD_ATTRIBUTION,
+                "official_dataset_page": (
+                    "https://www.huduser.gov/portal/datasets/fmr.html"
+                ),
+                "official_download": HUD_FMR_URL,
+                "interpretation_note": (
+                    "FMR is a gross-rent program benchmark, not an asking-rent "
+                    "estimate or a property valuation."
+                ),
             },
             {
-                "source_id": "openfema",
-                "source_name": "OpenFEMA",
-                "status": "planned — dataset-by-dataset review required",
+                "source_id": "openfema_disaster_declarations",
+                "source_name": (
+                    "Federal Emergency Management Agency — "
+                    "OpenFEMA Disaster Declarations Summaries"
+                ),
+                "status": statuses["fema"]["status"],
+                "cost": "Free public API; no registration required",
+                "data_used": (
+                    "Unique federal disaster declarations by state for a "
+                    "rolling ten-year window."
+                ),
+                "attribution": FEMA_ATTRIBUTION,
+                "official_dataset_page": (
+                    "https://www.fema.gov/about/openfema/"
+                    "disaster-declarations-summaries"
+                ),
+                "official_api": OPENFEMA_ENDPOINT,
+                "interpretation_note": (
+                    "Declaration history is not a parcel-level hazard, flood "
+                    "zone, insurance, or future-loss determination."
+                ),
             },
             {
                 "source_id": "commercial_vendor",
@@ -510,8 +941,11 @@ def source_register(now: str, statuses: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+
 def main() -> int:
-    now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
+    now_datetime = dt.datetime.now(dt.timezone.utc)
+    now = now_datetime.replace(microsecond=0).isoformat()
+    window_start = f"{now_datetime.year - 10}-01-01"
     census_key = os.environ.get("CENSUS_API_KEY", "").strip()
     using_census_fixtures = bool(
         os.environ.get("CENSUS_FIXTURE_CURRENT")
@@ -522,6 +956,8 @@ def main() -> int:
         "census": {"status": "not attempted", "message": ""},
         "bls": {"status": "not attempted", "message": ""},
         "fhfa": {"status": "not attempted", "message": ""},
+        "hud": {"status": "not attempted", "message": ""},
+        "fema": {"status": "not attempted", "message": ""},
     }
 
     records: list[dict[str, Any]] = []
@@ -594,6 +1030,35 @@ def main() -> int:
         fhfa_records = {}
         statuses["fhfa"] = {"status": "error", "message": str(exc)}
 
+    try:
+        hud_areas, hud_summaries = build_hud_fmr_records(load_hud_fmr_bytes())
+        statuses["hud"] = {
+            "status": "success",
+            "message": f"{len(hud_areas)} county/town records",
+            "fiscal_year": HUD_FMR_YEAR,
+        }
+    except Exception as exc:
+        hud_areas = []
+        hud_summaries = {}
+        statuses["hud"] = {"status": "error", "message": str(exc)}
+
+    try:
+        fema_summaries, fema_recent = build_fema_records(
+            fetch_fema_rows(window_start)
+        )
+        statuses["fema"] = {
+            "status": "success",
+            "message": (
+                f"{sum(item['fema_declarations_10yr'] for item in fema_summaries.values())} "
+                "unique state declarations"
+            ),
+            "window_start": window_start,
+        }
+    except Exception as exc:
+        fema_summaries = {}
+        fema_recent = {}
+        statuses["fema"] = {"status": "error", "message": str(exc)}
+
     for record in records:
         state_fips = record.get("state_fips", "")
         record["abbr"] = record.get("abbr") or STATE_FIPS.get(
@@ -601,24 +1066,34 @@ def main() -> int:
         )[0]
         record.update(bls_records.get(state_fips, {}))
         record.update(fhfa_records.get(state_fips, {}))
+        record.update(hud_summaries.get(state_fips, {}))
+        record.update(fema_summaries.get(state_fips, {}))
+
+        median_fmr_2 = record.get("hud_median_fmr_2")
+        income = record.get("median_household_income")
+        record["hud_annual_fmr2_to_income_pct"] = ratio(
+            median_fmr_2 * 12 if median_fmr_2 is not None else None,
+            income,
+            100,
+        )
 
     successful_sources = sum(
         1 for source in statuses.values()
         if source["status"] == "success"
     )
     overall_status = (
-        "success" if successful_sources == 3
+        "success" if successful_sources == 5
         else "partial success" if successful_sources > 0
         else "error"
     )
 
     output = {
-        "schema_version": 2,
+        "schema_version": 3,
         "updated_at_utc": now,
         "source": "Official U.S. government data",
         "dataset": (
-            "Census ACS 5-Year, BLS LAUS state unemployment, "
-            "and FHFA state House Price Index"
+            "Census ACS, BLS LAUS, FHFA HPI, HUD FY 2026 FMR, "
+            "and OpenFEMA Disaster Declarations Summaries"
         ),
         "current_vintage": CURRENT_ACS_YEAR,
         "comparison_vintage": COMPARISON_ACS_YEAR,
@@ -626,13 +1101,19 @@ def main() -> int:
             "ACS compares 2020–2024 with the non-overlapping "
             "2015–2019 ACS 5-Year estimates."
         ),
+        "hud_fmr_year": HUD_FMR_YEAR,
+        "fema_window_start": window_start,
         "attribution_notices": [
             CENSUS_NOTICE,
             BLS_ATTRIBUTION,
             FHFA_ATTRIBUTION,
+            HUD_ATTRIBUTION,
+            FEMA_ATTRIBUTION,
         ],
         "source_status": statuses,
         "records": sorted(records, key=lambda item: item.get("name", "")),
+        "hud_fmr_areas": hud_areas,
+        "fema_recent_declarations": fema_recent,
     }
 
     Path("census_state_data.json").write_text(
@@ -643,13 +1124,14 @@ def main() -> int:
         json.dumps({
             "updated_at_utc": now,
             "status": overall_status,
-            "message": (
-                f"Census: {statuses['census']['status']}; "
-                f"BLS: {statuses['bls']['status']}; "
-                f"FHFA: {statuses['fhfa']['status']}."
+            "message": "; ".join(
+                f"{name.upper()}: {details['status']}"
+                for name, details in statuses.items()
             ),
             "sources": statuses,
             "records_written": len(records),
+            "hud_area_records": len(hud_areas),
+            "fema_window_start": window_start,
         }, indent=2),
         encoding="utf-8",
     )
@@ -659,10 +1141,12 @@ def main() -> int:
     )
 
     print(
-        f"Wrote {len(records)} combined state records. "
+        f"Wrote {len(records)} combined state records, "
+        f"{len(hud_areas)} HUD FMR area records. "
         f"Overall status: {overall_status}."
     )
     return 0 if successful_sources > 0 else 3
+
 
 
 if __name__ == "__main__":

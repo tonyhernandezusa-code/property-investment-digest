@@ -1,13 +1,15 @@
 # Property Investment Digest
 
-## Migration 6
-- Existing Census update retained
-- BLS Local Area Unemployment Statistics added
-- FHFA quarterly purchase-only state House Price Index added
-- New Labor & HPI state comparison page
-- State rankings by unemployment and house-price changes
-- No additional API key or repository secret required
-- Existing `Update Government Data` workflow remains in use
-- No paid or privately licensed property-data source added
+## Migration 7
+- Census, BLS, and FHFA updates retained
+- HUD FY 2026 county/town Fair Market Rents
+- OpenFEMA rolling ten-year disaster-declaration summaries
+- New Rent & Disaster Context page
+- County/town HUD lookup
+- State comparison and recent declarations
+- Existing Update Government Data workflow reused
+- Existing CENSUS_API_KEY reused
+- No new repository secret
+- No paid or privately licensed property-data source
 
-After uploading, run the existing **Update Government Data** workflow once to populate the new BLS and FHFA fields.
+After uploading, run **Update Government Data** once to populate HUD and FEMA fields.

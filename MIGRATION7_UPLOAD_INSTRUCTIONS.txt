@@ -1,0 +1,46 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 7
+
+THIS MIGRATION ADDS:
+- HUD FY 2026 Fair Market Rents
+- OpenFEMA disaster-declaration history
+- rent-disaster.html
+
+NO NEW SECRET OR WORKFLOW FILE IS REQUIRED.
+The existing Update Government Data workflow and CENSUS_API_KEY are reused.
+
+UPLOAD:
+1. Download and unzip property-investment-digest-migration7.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the unzipped Migration 7 folder.
+5. Drag the files into GitHub.
+6. Commit message:
+   Add HUD rents and FEMA declarations
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+
+RUN THE UPDATE:
+1. Click Actions.
+2. Select Update Government Data.
+3. Click Run workflow.
+4. Confirm branch main.
+5. Click the green Run workflow button.
+6. Wait for the green check.
+7. Wait for Pages deployment.
+8. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/rent-disaster.html
+9. Press Ctrl + F5.
+
+TEST:
+- Florida should open first.
+- Texas should be the comparison state.
+- HUD status and FEMA status should show success or partial success.
+- Search for Miami-Dade in the HUD table.
+- Change the state and comparison state.
+- Confirm recent FEMA declarations appear.
+
+IMPORTANT:
+- FMR is a HUD gross-rent benchmark, not a live asking rent.
+- FEMA declarations are not parcel-level risk or flood determinations.
+- Do not upload the ZIP itself.
+- Do not modify the original Stock-digest repository.

@@ -232,3 +232,8 @@
 /* Migration 6: Labor and HPI */
 .source-status-good { color: #0f6b4f; font-weight: 700; }
 .source-status-warning { color: #9a6410; font-weight: 700; }
+
+/* Migration 7: HUD and FEMA */
+#areaSearch { width: 100%; }
+#areaBody td:nth-child(2) { min-width: 260px; }
+#disasterBody td:nth-child(5) { min-width: 280px; }
