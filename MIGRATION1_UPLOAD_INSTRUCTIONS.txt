@@ -1,0 +1,22 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 1
+
+Upload these files into the existing property-investment-digest repository.
+
+Easy method:
+1. Open the repository.
+2. Click Add file.
+3. Click Upload files.
+4. Open this unzipped Migration 1 folder.
+5. Select all files inside it.
+6. Drag the selected files into GitHub.
+7. GitHub will show that existing files are being replaced and investment-map.html is being added.
+8. Commit message:
+   Add protected county investment map
+9. Click Commit changes.
+10. Wait for Pages deployment.
+11. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/investment-map.html
+12. Press Ctrl + F5.
+
+Do not upload the ZIP file itself.
+Do not delete or modify the Stock-digest repository.
