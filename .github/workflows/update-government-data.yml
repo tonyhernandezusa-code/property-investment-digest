@@ -1,0 +1,54 @@
+name: Update Government Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "35 12 5 * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update-government-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Check Census API key
+        id: census_key
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: |
+          if [ -z "$CENSUS_API_KEY" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CENSUS_API_KEY is not configured. No data update was attempted."
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update Census ACS state data
+        if: steps.census_key.outputs.available == 'true'
+        env:
+          CENSUS_API_KEY: ${{ secrets.CENSUS_API_KEY }}
+        run: python update_census_data.py
+
+      - name: Commit only approved government-data outputs
+        if: steps.census_key.outputs.available == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add census_state_data.json data-update-status.json data-source-register.json
+          if git diff --cached --quiet; then
+            echo "No government-data changes to commit."
+          else
+            git commit -m "Update Census government data"
+            git push
+          fi
