@@ -1,5 +1,8 @@
 {
-  "updated_at_utc": null,
-  "status": "baseline",
-  "message": "Awaiting first successful Update Government Data workflow run."
+  "updated_at_utc": "2026-08-06T02:25:50+00:00",
+  "status": "success",
+  "source": "Census ACS 5-Year",
+  "current_vintage": 2024,
+  "comparison_vintage": 2019,
+  "records_written": 52
 }

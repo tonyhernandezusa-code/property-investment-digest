@@ -1,11 +1,11 @@
 {
   "register_version": 1,
-  "last_reviewed_utc": "2026-08-06T02:00:00+00:00",
+  "last_reviewed_utc": "2026-08-06T02:25:50+00:00",
   "sources": [
     {
       "source_id": "census_acs_5year",
       "source_name": "U.S. Census Bureau \u2014 ACS 5-Year Detailed Tables",
-      "status": "active after API key setup",
+      "status": "active",
       "cost": "Free",
       "publication_basis": "Census Data API Terms of Service",
       "required_notice": "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.",
@@ -15,12 +15,12 @@
     {
       "source_id": "bls",
       "source_name": "U.S. Bureau of Labor Statistics",
-      "status": "planned \u2014 not used by Migration 5"
+      "status": "planned \u2014 not yet added"
     },
     {
       "source_id": "fhfa",
       "source_name": "Federal Housing Finance Agency",
-      "status": "planned \u2014 not used by Migration 5"
+      "status": "planned \u2014 not yet added"
     },
     {
       "source_id": "hud",
@@ -36,7 +36,7 @@
       "source_id": "commercial_vendor",
       "source_name": "Commercial property-data vendor",
       "status": "not selected",
-      "publication_rule": "No vendor data may be added until written permission is retained."
+      "publication_rule": "Do not add vendor data until written publication permission is retained."
     }
   ]
 }
