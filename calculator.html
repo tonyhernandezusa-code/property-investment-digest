@@ -1,1 +1,709 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Property Calculator | Property Investment Digest</title><meta name="description" content="Free real-estate research, education, calculators, and transparent property analysis tools."><link rel="stylesheet" href="styles.css"></head><body><header><div class="wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="calculator.html">Property Calculator</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header><main><div class="toolbar"><button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button></div><section class="hero"><h1>Property Financial Calculator</h1><p>Enter annual income, operating expenses, and financing assumptions. This page performs mathematical analysis only and does not determine suitability.</p></section><div class="learning-box"><strong>How to use this page:</strong> Begin with annual amounts. All results depend on the accuracy of the information entered.</div><section class="card"><form id="propertyForm"><div class="field-grid"><div><label for="price">Purchase price ($)</label><input id="price" type="number" min="0" step="1000" value="1000000"></div><div><label for="down">Down payment ($)</label><input id="down" type="number" min="0" step="1000" value="250000"></div><div><label for="income">Gross scheduled income ($/year)</label><input id="income" type="number" min="0" step="1000" value="120000"></div><div><label for="vacancy">Vacancy and credit loss (%)</label><input id="vacancy" type="number" min="0" max="100" step="0.1" value="5"></div><div><label for="otherIncome">Other income ($/year)</label><input id="otherIncome" type="number" min="0" step="100" value="0"></div><div><label for="expenses">Operating expenses ($/year)</label><input id="expenses" type="number" min="0" step="1000" value="45000"></div><div><label for="interest">Loan interest rate (%)</label><input id="interest" type="number" min="0" step="0.01" value="6.5"></div><div><label for="term">Amortization term (years)</label><input id="term" type="number" min="1" step="1" value="25"></div><div><label for="closing">Closing and initial costs ($)</label><input id="closing" type="number" min="0" step="1000" value="25000"></div></div><p><button class="button" type="submit">Calculate</button></p></form><div class="results" aria-live="polite"><div class="result"><div class="label">Effective gross income</div><div class="value" id="egi">$0</div></div><div class="result"><div class="label">Net operating income</div><div class="value" id="noi">$0</div></div><div class="result"><div class="label">Cap rate</div><div class="value" id="capRate">0.00%</div></div><div class="result"><div class="label">Annual debt service</div><div class="value" id="debtService">$0</div></div><div class="result"><div class="label">DSCR</div><div class="value" id="dscr">0.00</div></div><div class="result"><div class="label">Cash flow before tax</div><div class="value" id="cashFlow">$0</div></div><div class="result"><div class="label">Cash-on-cash return</div><div class="value" id="coc">0.00%</div></div><div class="result"><div class="label">Break-even occupancy</div><div class="value" id="breakEven">0.00%</div></div></div><div class="notice"><strong>Important:</strong> This calculator does not include every possible cost, tax consequence, capital expenditure, reserve, environmental issue, zoning restriction, insurance limitation, or financing condition.</div></section></main><footer><strong>Educational research only.</strong> Property Investment Digest does not represent buyers or sellers, recommend particular properties, arrange transactions, or provide legal, tax, lending, appraisal, brokerage, or investment advice.</footer><script>(function(){const key="pid_learning_mode";const b=document.getElementById("learningToggle");function setMode(on){document.body.classList.toggle("learning-on",on);if(b)b.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem(key,on?"on":"off")}if(b)b.addEventListener("click",()=>setMode(!document.body.classList.contains("learning-on")));setMode(localStorage.getItem(key)==="on")})();</script><script>(function(){const $=id=>document.getElementById(id),money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}),pct=v=>Number.isFinite(v)?(v*100).toFixed(2)+"%":"N/A",num=id=>Number($(id).value)||0;function ads(p,r,y){if(p<=0)return 0;const n=Math.max(1,Math.round(y*12)),m=r/100/12;if(m===0)return p/n*12;return p*m/(1-Math.pow(1+m,-n))*12}function calc(e){if(e)e.preventDefault();const price=num("price"),down=num("down"),gross=num("income"),vac=num("vacancy")/100,other=num("otherIncome"),exp=num("expenses"),loan=Math.max(0,price-down),debt=ads(loan,num("interest"),num("term")),egi=gross*(1-vac)+other,noi=egi-exp,cap=price>0?noi/price:NaN,dscr=debt>0?noi/debt:NaN,cf=noi-debt,cash=down+num("closing"),coc=cash>0?cf/cash:NaN,be=gross>0?(exp+debt-other)/gross:NaN;$("egi").textContent=money.format(egi);$("noi").textContent=money.format(noi);$("capRate").textContent=pct(cap);$("debtService").textContent=money.format(debt);$("dscr").textContent=Number.isFinite(dscr)?dscr.toFixed(2):"N/A";$("cashFlow").textContent=money.format(cf);$("coc").textContent=pct(coc);$("breakEven").textContent=pct(be)}$("propertyForm").addEventListener("submit",calc);calc()})();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Full Property Calculators | Property Investment Digest</title>
+  <meta name="description" content="Free property financial analysis, mortgage, amortization, scenario, and pro forma calculators.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="calculator.html">Full Calculators</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+  </div>
+
+  <section class="hero">
+    <h1>Full Property Investment Calculators</h1>
+    <p>Analyze rental income, expenses, financing, debt coverage, cash flow, amortization, operating scenarios, and possible 5- and 10-year outcomes. Every result is based on user-entered assumptions.</p>
+  </section>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> Begin with the Property Analysis tab. Add each unit type and monthly rent, then enter the annual expenses and loan assumptions. The calculator separates operations from financing so you can see what the property produces before and after debt service.
+  </div>
+
+  <div class="calc-tabs" role="tablist">
+    <button class="calc-tab active" data-panel="analysisPanel" type="button">Property Analysis</button>
+    <button class="calc-tab" data-panel="mortgagePanel" type="button">Mortgage &amp; Amortization</button>
+    <button class="calc-tab" data-panel="scenarioPanel" type="button">Scenarios &amp; Pro Forma</button>
+  </div>
+
+  <section class="card calc-panel active" id="analysisPanel">
+    <h2>Property Analysis</h2>
+
+    <div class="two-column">
+      <div>
+        <h3>Acquisition and financing</h3>
+        <div class="field-grid">
+          <div>
+            <label for="propertyName">Property name or address</label>
+            <input id="propertyName" type="text" value="Sample Property">
+          </div>
+          <div>
+            <label for="propertyType">Property type</label>
+            <select id="propertyType">
+              <option value="residential">1–4 unit residential investment</option>
+              <option value="multifamily" selected>5+ unit multifamily</option>
+              <option value="retail">Retail</option>
+              <option value="office">Office</option>
+              <option value="industrial">Industrial</option>
+              <option value="mixed">Mixed-use</option>
+              <option value="other">Other commercial</option>
+            </select>
+          </div>
+          <div>
+            <label for="purchasePrice">Purchase price ($)</label>
+            <input id="purchasePrice" type="number" min="0" step="1000" value="1000000">
+          </div>
+          <div>
+            <label for="downPaymentPct">Down payment (%)</label>
+            <input id="downPaymentPct" type="number" min="0" max="100" step="0.1" value="25">
+          </div>
+          <div>
+            <label for="closingCostsPct">Closing and initial costs (%)</label>
+            <input id="closingCostsPct" type="number" min="0" step="0.1" value="3">
+          </div>
+          <div>
+            <label for="interestRate">Interest rate (%)</label>
+            <input id="interestRate" type="number" min="0" step="0.01" value="6.5">
+          </div>
+          <div>
+            <label for="amortYears">Amortization (years)</label>
+            <input id="amortYears" type="number" min="1" step="1" value="25">
+          </div>
+          <div>
+            <label for="loanTermYears">Loan term / balloon (years)</label>
+            <input id="loanTermYears" type="number" min="1" step="1" value="10">
+            <span class="field-help">Used to show the balance due at the end of the stated term.</span>
+          </div>
+          <div>
+            <label for="interestOnlyMonths">Interest-only period (months)</label>
+            <input id="interestOnlyMonths" type="number" min="0" step="1" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3>Income assumptions</h3>
+        <div id="unitRows"></div>
+        <button class="button secondary" id="addUnitButton" type="button">+ Add Unit Type</button>
+        <div class="subsection">
+          <div class="field-grid">
+            <div>
+              <label for="otherAnnualIncome">Other income ($/year)</label>
+              <input id="otherAnnualIncome" type="number" min="0" step="100" value="6000">
+            </div>
+            <div>
+              <label for="vacancyPct">Vacancy and credit loss (%)</label>
+              <input id="vacancyPct" type="number" min="0" max="100" step="0.1" value="5">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subsection">
+      <h3>Annual operating expenses</h3>
+      <div class="field-grid">
+        <div><label for="propertyTaxes">Property taxes ($)</label><input id="propertyTaxes" type="number" min="0" step="100" value="14000"></div>
+        <div><label for="insurance">Insurance ($)</label><input id="insurance" type="number" min="0" step="100" value="10000"></div>
+        <div><label for="repairs">Repairs and maintenance ($)</label><input id="repairs" type="number" min="0" step="100" value="10000"></div>
+        <div><label for="utilities">Owner-paid utilities ($)</label><input id="utilities" type="number" min="0" step="100" value="6000"></div>
+        <div><label for="adminLegal">Administration and legal ($)</label><input id="adminLegal" type="number" min="0" step="100" value="3000"></div>
+        <div><label for="leasingAdvertising">Leasing and advertising ($)</label><input id="leasingAdvertising" type="number" min="0" step="100" value="2500"></div>
+        <div><label for="hoa">HOA or association fees ($)</label><input id="hoa" type="number" min="0" step="100" value="0"></div>
+        <div><label for="managementPct">Management fee (% of collected income)</label><input id="managementPct" type="number" min="0" step="0.1" value="8"></div>
+        <div><label for="capexReserve">Capital-expenditure reserve ($)</label><input id="capexReserve" type="number" min="0" step="100" value="6000"></div>
+        <div><label for="otherExpenses">Other operating expenses ($)</label><input id="otherExpenses" type="number" min="0" step="100" value="2000"></div>
+      </div>
+      <p class="metric-note">Loan payments, depreciation, and income taxes are not operating expenses and are not deducted when calculating NOI.</p>
+    </div>
+
+    <div class="action-row">
+      <button class="button" id="calculateButton" type="button">Calculate Property</button>
+      <button class="button secondary" id="saveButton" type="button">Save Inputs on This Device</button>
+      <button class="button secondary" id="loadButton" type="button">Load Saved Inputs</button>
+      <button class="button secondary" id="printButton" type="button">Print Analysis</button>
+      <button class="button secondary" id="resetButton" type="button">Reset Sample</button>
+    </div>
+    <div class="status" id="saveStatus"></div>
+
+    <div class="results" aria-live="polite">
+      <div class="result"><div class="label">Gross scheduled rent</div><div class="value" id="grossRent">$0</div></div>
+      <div class="result"><div class="label">Effective gross income</div><div class="value" id="egi">$0</div></div>
+      <div class="result"><div class="label">Operating expenses</div><div class="value" id="opex">$0</div></div>
+      <div class="result"><div class="label">Net operating income</div><div class="value" id="noi">$0</div></div>
+      <div class="result"><div class="label">Cap rate</div><div class="value" id="capRate">0.00%</div></div>
+      <div class="result"><div class="label">Annual debt service</div><div class="value" id="debtService">$0</div></div>
+      <div class="result"><div class="label">DSCR</div><div class="value" id="dscr">0.00</div></div>
+      <div class="result"><div class="label">Annual cash flow</div><div class="value" id="annualCashFlow">$0</div></div>
+      <div class="result"><div class="label">Monthly cash flow</div><div class="value" id="monthlyCashFlow">$0</div></div>
+      <div class="result"><div class="label">Cash invested</div><div class="value" id="cashInvested">$0</div></div>
+      <div class="result"><div class="label">Cash-on-cash return</div><div class="value" id="cashOnCash">0.00%</div></div>
+      <div class="result"><div class="label">Break-even occupancy</div><div class="value" id="breakEven">0.00%</div></div>
+      <div class="result"><div class="label">Loan-to-value</div><div class="value" id="ltv">0.00%</div></div>
+      <div class="result"><div class="label">Debt yield</div><div class="value" id="debtYield">0.00%</div></div>
+      <div class="result"><div class="label">Operating expense ratio</div><div class="value" id="expenseRatio">0.00%</div></div>
+      <div class="result"><div class="label">Gross rent multiplier</div><div class="value" id="grm">0.00</div></div>
+      <div class="result"><div class="label">Price per unit</div><div class="value" id="pricePerUnit">$0</div></div>
+      <div class="result"><div class="label">Balance at loan term</div><div class="value" id="balloonBalance">$0</div></div>
+    </div>
+
+    <div class="learning-box">
+      <strong>How to read the results:</strong> NOI measures property operations before financing. Cap rate compares NOI with price. DSCR compares NOI with annual loan payments. Cash-on-cash return compares annual pre-tax cash flow with the cash invested. None of these measurements alone determines whether a transaction is appropriate.
+    </div>
+
+    <div class="notice">
+      <strong>Educational estimate:</strong> Verify rent rolls, leases, expenses, taxes, insurance, property condition, reserves, zoning, environmental conditions, financing terms, and all other facts independently.
+    </div>
+  </section>
+
+  <section class="card calc-panel" id="mortgagePanel">
+    <h2>Mortgage and Amortization</h2>
+    <p>This section uses the purchase and financing assumptions from Property Analysis.</p>
+    <div class="results">
+      <div class="result"><div class="label">Loan amount</div><div class="value" id="loanAmountSummary">$0</div></div>
+      <div class="result"><div class="label">Monthly scheduled payment</div><div class="value" id="monthlyPaymentSummary">$0</div></div>
+      <div class="result"><div class="label">First-year principal</div><div class="value" id="firstYearPrincipal">$0</div></div>
+      <div class="result"><div class="label">First-year interest</div><div class="value" id="firstYearInterest">$0</div></div>
+      <div class="result"><div class="label">Total interest if fully amortized</div><div class="value" id="totalInterest">$0</div></div>
+      <div class="result"><div class="label">Mortgage constant</div><div class="value" id="mortgageConstant">0.00%</div></div>
+    </div>
+
+    <h3 class="section-title">First 12 months</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Beginning balance</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
+        <tbody id="amortizationBody"></tbody>
+      </table>
+    </div>
+
+    <h3 class="section-title">Annual loan summary</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Year</th><th>Payments</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
+        <tbody id="annualLoanBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card calc-panel" id="scenarioPanel">
+    <h2>Operating Scenarios and Pro Forma</h2>
+    <div class="field-grid">
+      <div><label for="annualRentGrowth">Base annual rent growth (%)</label><input id="annualRentGrowth" type="number" step="0.1" value="3"></div>
+      <div><label for="annualExpenseGrowth">Base annual expense growth (%)</label><input id="annualExpenseGrowth" type="number" step="0.1" value="3"></div>
+      <div><label for="exitCapRate">Exit cap rate (%)</label><input id="exitCapRate" type="number" min="0.1" step="0.1" value="6.5"></div>
+      <div><label for="sellingCostsPct">Selling costs at exit (%)</label><input id="sellingCostsPct" type="number" min="0" step="0.1" value="6"></div>
+    </div>
+    <div class="action-row">
+      <button class="button" id="scenarioButton" type="button">Update Scenarios</button>
+    </div>
+
+    <div class="grid" id="scenarioCards"></div>
+
+    <h3 class="section-title">10-Year Base Pro Forma</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Year</th><th>Effective income</th><th>Operating expenses</th><th>NOI</th><th>Debt service</th><th>Cash flow</th><th>Loan balance</th></tr></thead>
+        <tbody id="proFormaBody"></tbody>
+      </table>
+    </div>
+
+    <div class="results">
+      <div class="result"><div class="label">Estimated 5-year sale price</div><div class="value" id="salePrice5">$0</div></div>
+      <div class="result"><div class="label">Estimated 5-year IRR</div><div class="value" id="irr5">N/A</div></div>
+      <div class="result"><div class="label">Estimated 5-year equity multiple</div><div class="value" id="equityMultiple5">N/A</div></div>
+      <div class="result"><div class="label">Estimated 10-year sale price</div><div class="value" id="salePrice10">$0</div></div>
+      <div class="result"><div class="label">Estimated 10-year IRR</div><div class="value" id="irr10">N/A</div></div>
+      <div class="result"><div class="label">Estimated 10-year equity multiple</div><div class="value" id="equityMultiple10">N/A</div></div>
+    </div>
+
+    <div class="learning-box">
+      <strong>Scenario warning:</strong> These are mathematical illustrations—not forecasts. Small changes in rent, expenses, vacancy, interest rates, and exit cap rates can materially change the estimated outcome.
+    </div>
+  </section>
+</main>
+
+<footer>
+  <strong>Educational research only.</strong> Property Investment Digest does not recommend properties or transactions and does not provide legal, tax, lending, appraisal, brokerage, engineering, insurance, or investment advice.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "pid_full_property_calculator_v2";
+  const LEARNING_KEY = "pid_learning_mode";
+  const moneyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+  const $ = (id) => document.getElementById(id);
+  const num = (id) => Number($(id).value) || 0;
+  const money = (value) => Number.isFinite(value) ? moneyFormatter.format(value) : "N/A";
+  const pct = (value) => Number.isFinite(value) ? (value * 100).toFixed(2) + "%" : "N/A";
+  const decimal = (value) => Number.isFinite(value) ? value.toFixed(2) : "N/A";
+
+  const learningButton = $("learningToggle");
+  function setLearningMode(on) {
+    document.body.classList.toggle("learning-on", on);
+    learningButton.textContent = on ? "🎓 Learning Mode: On" : "🎓 Learning Mode: Off";
+    localStorage.setItem(LEARNING_KEY, on ? "on" : "off");
+  }
+  learningButton.addEventListener("click", () => setLearningMode(!document.body.classList.contains("learning-on")));
+  setLearningMode(localStorage.getItem(LEARNING_KEY) === "on");
+
+  document.querySelectorAll(".calc-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      document.querySelectorAll(".calc-tab").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".calc-panel").forEach((panel) => panel.classList.remove("active"));
+      button.classList.add("active");
+      $(button.dataset.panel).classList.add("active");
+      calculateAll();
+    });
+  });
+
+  function monthlyPayment(principal, annualRatePct, amortYears) {
+    if (principal <= 0) return 0;
+    const months = Math.max(1, Math.round(amortYears * 12));
+    const rate = annualRatePct / 100 / 12;
+    if (rate === 0) return principal / months;
+    return principal * rate / (1 - Math.pow(1 + rate, -months));
+  }
+
+  function buildSchedule(principal, annualRatePct, amortYears, interestOnlyMonths) {
+    const rows = [];
+    const totalMonths = Math.max(1, Math.round(amortYears * 12));
+    const monthlyRate = annualRatePct / 100 / 12;
+    const amortPayment = monthlyPayment(principal, annualRatePct, amortYears);
+    let balance = principal;
+
+    for (let month = 1; month <= totalMonths && balance > 0.005; month += 1) {
+      const beginning = balance;
+      const interest = beginning * monthlyRate;
+      let payment;
+      let principalPaid;
+
+      if (month <= interestOnlyMonths) {
+        payment = interest;
+        principalPaid = 0;
+      } else {
+        payment = Math.min(amortPayment, beginning + interest);
+        principalPaid = Math.max(0, payment - interest);
+      }
+
+      balance = Math.max(0, beginning - principalPaid);
+      rows.push({ month, beginning, payment, interest, principal: principalPaid, ending: balance });
+    }
+    return rows;
+  }
+
+  function irr(cashFlows) {
+    if (!cashFlows.some((v) => v < 0) || !cashFlows.some((v) => v > 0)) return null;
+    let low = -0.9999;
+    let high = 10;
+    const npv = (rate) => cashFlows.reduce((sum, value, index) => sum + value / Math.pow(1 + rate, index), 0);
+    let lowNpv = npv(low);
+    let highNpv = npv(high);
+    if (!Number.isFinite(lowNpv) || !Number.isFinite(highNpv) || lowNpv * highNpv > 0) return null;
+
+    for (let i = 0; i < 200; i += 1) {
+      const mid = (low + high) / 2;
+      const midNpv = npv(mid);
+      if (Math.abs(midNpv) < 0.01) return mid;
+      if (lowNpv * midNpv <= 0) {
+        high = mid;
+        highNpv = midNpv;
+      } else {
+        low = mid;
+        lowNpv = midNpv;
+      }
+    }
+    return (low + high) / 2;
+  }
+
+  function addUnitRow(name = "1 Bedroom", units = 8, rent = 1250) {
+    const row = document.createElement("div");
+    row.className = "unit-row";
+    row.innerHTML = `
+      <div><label>Unit type</label><input class="unit-name" type="text" value="${String(name).replace(/"/g, "&quot;")}"></div>
+      <div><label>Units</label><input class="unit-count" type="number" min="0" step="1" value="${units}"></div>
+      <div><label>Monthly rent/unit</label><input class="unit-rent" type="number" min="0" step="25" value="${rent}"></div>
+      <button class="remove-unit" type="button">Remove</button>
+    `;
+    row.querySelector(".remove-unit").addEventListener("click", () => {
+      row.remove();
+      calculateAll();
+    });
+    row.querySelectorAll("input").forEach((input) => input.addEventListener("input", calculateAll));
+    $("unitRows").appendChild(row);
+  }
+
+  function unitData() {
+    return Array.from(document.querySelectorAll(".unit-row")).map((row) => ({
+      name: row.querySelector(".unit-name").value,
+      units: Number(row.querySelector(".unit-count").value) || 0,
+      rent: Number(row.querySelector(".unit-rent").value) || 0
+    }));
+  }
+
+  function propertyInputs() {
+    return {
+      propertyName: $("propertyName").value,
+      propertyType: $("propertyType").value,
+      purchasePrice: num("purchasePrice"),
+      downPaymentPct: num("downPaymentPct"),
+      closingCostsPct: num("closingCostsPct"),
+      interestRate: num("interestRate"),
+      amortYears: num("amortYears"),
+      loanTermYears: num("loanTermYears"),
+      interestOnlyMonths: num("interestOnlyMonths"),
+      units: unitData(),
+      otherAnnualIncome: num("otherAnnualIncome"),
+      vacancyPct: num("vacancyPct"),
+      propertyTaxes: num("propertyTaxes"),
+      insurance: num("insurance"),
+      repairs: num("repairs"),
+      utilities: num("utilities"),
+      adminLegal: num("adminLegal"),
+      leasingAdvertising: num("leasingAdvertising"),
+      hoa: num("hoa"),
+      managementPct: num("managementPct"),
+      capexReserve: num("capexReserve"),
+      otherExpenses: num("otherExpenses"),
+      annualRentGrowth: num("annualRentGrowth"),
+      annualExpenseGrowth: num("annualExpenseGrowth"),
+      exitCapRate: num("exitCapRate"),
+      sellingCostsPct: num("sellingCostsPct")
+    };
+  }
+
+  function calculateMetrics(inputs) {
+    const totalUnits = inputs.units.reduce((sum, item) => sum + item.units, 0);
+    const grossMonthlyRent = inputs.units.reduce((sum, item) => sum + item.units * item.rent, 0);
+    const grossAnnualRent = grossMonthlyRent * 12;
+    const vacancyLoss = grossAnnualRent * inputs.vacancyPct / 100;
+    const collectedRent = grossAnnualRent - vacancyLoss;
+    const egi = collectedRent + inputs.otherAnnualIncome;
+    const management = egi * inputs.managementPct / 100;
+    const fixedExpenses = inputs.propertyTaxes + inputs.insurance + inputs.repairs + inputs.utilities +
+      inputs.adminLegal + inputs.leasingAdvertising + inputs.hoa + inputs.capexReserve + inputs.otherExpenses;
+    const operatingExpenses = fixedExpenses + management;
+    const noi = egi - operatingExpenses;
+
+    const downPayment = inputs.purchasePrice * inputs.downPaymentPct / 100;
+    const loanAmount = Math.max(0, inputs.purchasePrice - downPayment);
+    const closingCosts = inputs.purchasePrice * inputs.closingCostsPct / 100;
+    const cashInvested = downPayment + closingCosts;
+    const schedule = buildSchedule(loanAmount, inputs.interestRate, inputs.amortYears, inputs.interestOnlyMonths);
+    const first12 = schedule.slice(0, 12);
+    const annualDebtService = first12.reduce((sum, row) => sum + row.payment, 0);
+    const annualCashFlow = noi - annualDebtService;
+
+    const termMonth = Math.min(schedule.length, Math.max(1, Math.round(inputs.loanTermYears * 12)));
+    const balloonBalance = schedule.length ? schedule[termMonth - 1].ending : 0;
+
+    return {
+      totalUnits,
+      grossMonthlyRent,
+      grossAnnualRent,
+      vacancyLoss,
+      collectedRent,
+      egi,
+      management,
+      fixedExpenses,
+      operatingExpenses,
+      noi,
+      downPayment,
+      loanAmount,
+      closingCosts,
+      cashInvested,
+      schedule,
+      annualDebtService,
+      annualCashFlow,
+      monthlyCashFlow: annualCashFlow / 12,
+      capRate: inputs.purchasePrice > 0 ? noi / inputs.purchasePrice : NaN,
+      dscr: annualDebtService > 0 ? noi / annualDebtService : NaN,
+      cashOnCash: cashInvested > 0 ? annualCashFlow / cashInvested : NaN,
+      breakEven: grossAnnualRent > 0 ? (operatingExpenses + annualDebtService - inputs.otherAnnualIncome) / grossAnnualRent : NaN,
+      ltv: inputs.purchasePrice > 0 ? loanAmount / inputs.purchasePrice : NaN,
+      debtYield: loanAmount > 0 ? noi / loanAmount : NaN,
+      expenseRatio: egi > 0 ? operatingExpenses / egi : NaN,
+      grm: grossAnnualRent > 0 ? inputs.purchasePrice / grossAnnualRent : NaN,
+      pricePerUnit: totalUnits > 0 ? inputs.purchasePrice / totalUnits : NaN,
+      balloonBalance
+    };
+  }
+
+  function setResultClass(id, status) {
+    const result = $(id).closest(".result");
+    result.classList.remove("good", "caution", "risk");
+    if (status) result.classList.add(status);
+  }
+
+  function displayMetrics(inputs, metrics) {
+    $("grossRent").textContent = money(metrics.grossAnnualRent);
+    $("egi").textContent = money(metrics.egi);
+    $("opex").textContent = money(metrics.operatingExpenses);
+    $("noi").textContent = money(metrics.noi);
+    $("capRate").textContent = pct(metrics.capRate);
+    $("debtService").textContent = money(metrics.annualDebtService);
+    $("dscr").textContent = decimal(metrics.dscr);
+    $("annualCashFlow").textContent = money(metrics.annualCashFlow);
+    $("monthlyCashFlow").textContent = money(metrics.monthlyCashFlow);
+    $("cashInvested").textContent = money(metrics.cashInvested);
+    $("cashOnCash").textContent = pct(metrics.cashOnCash);
+    $("breakEven").textContent = pct(metrics.breakEven);
+    $("ltv").textContent = pct(metrics.ltv);
+    $("debtYield").textContent = pct(metrics.debtYield);
+    $("expenseRatio").textContent = pct(metrics.expenseRatio);
+    $("grm").textContent = decimal(metrics.grm);
+    $("pricePerUnit").textContent = money(metrics.pricePerUnit);
+    $("balloonBalance").textContent = money(metrics.balloonBalance);
+
+    setResultClass("dscr", Number.isFinite(metrics.dscr) ? (metrics.dscr >= 1.25 ? "good" : metrics.dscr >= 1 ? "caution" : "risk") : "");
+    setResultClass("annualCashFlow", metrics.annualCashFlow >= 0 ? "good" : "risk");
+    setResultClass("monthlyCashFlow", metrics.monthlyCashFlow >= 0 ? "good" : "risk");
+    setResultClass("breakEven", Number.isFinite(metrics.breakEven) ? (metrics.breakEven <= 0.85 ? "good" : metrics.breakEven <= 1 ? "caution" : "risk") : "");
+
+    displayMortgage(inputs, metrics);
+    displayScenarios(inputs, metrics);
+  }
+
+  function displayMortgage(inputs, metrics) {
+    const schedule = metrics.schedule;
+    const first12 = schedule.slice(0, 12);
+    const firstYearPrincipal = first12.reduce((sum, row) => sum + row.principal, 0);
+    const firstYearInterest = first12.reduce((sum, row) => sum + row.interest, 0);
+    const totalInterest = schedule.reduce((sum, row) => sum + row.interest, 0);
+    const firstPayment = schedule.length ? schedule[0].payment : 0;
+    const mortgageConstant = metrics.loanAmount > 0 ? metrics.annualDebtService / metrics.loanAmount : NaN;
+
+    $("loanAmountSummary").textContent = money(metrics.loanAmount);
+    $("monthlyPaymentSummary").textContent = money(firstPayment);
+    $("firstYearPrincipal").textContent = money(firstYearPrincipal);
+    $("firstYearInterest").textContent = money(firstYearInterest);
+    $("totalInterest").textContent = money(totalInterest);
+    $("mortgageConstant").textContent = pct(mortgageConstant);
+
+    $("amortizationBody").innerHTML = first12.map((row) => `
+      <tr><td>${row.month}</td><td>${money(row.beginning)}</td><td>${money(row.payment)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
+    `).join("");
+
+    const annualRows = [];
+    const maxYears = Math.min(inputs.amortYears, 30);
+    for (let year = 1; year <= maxYears; year += 1) {
+      const rows = schedule.slice((year - 1) * 12, year * 12);
+      if (!rows.length) break;
+      annualRows.push({
+        year,
+        payments: rows.reduce((sum, row) => sum + row.payment, 0),
+        interest: rows.reduce((sum, row) => sum + row.interest, 0),
+        principal: rows.reduce((sum, row) => sum + row.principal, 0),
+        ending: rows[rows.length - 1].ending
+      });
+    }
+
+    $("annualLoanBody").innerHTML = annualRows.map((row) => `
+      <tr><td>${row.year}</td><td>${money(row.payments)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
+    `).join("");
+  }
+
+  function scenarioMetrics(inputs, base, rentAdjustmentPct, vacancyPct, expenseAdjustmentPct) {
+    const grossRent = base.grossAnnualRent * (1 + rentAdjustmentPct / 100);
+    const collected = grossRent * (1 - vacancyPct / 100);
+    const egi = collected + inputs.otherAnnualIncome;
+    const adjustedFixed = base.fixedExpenses * (1 + expenseAdjustmentPct / 100);
+    const management = egi * inputs.managementPct / 100;
+    const expenses = adjustedFixed + management;
+    const noi = egi - expenses;
+    const cashFlow = noi - base.annualDebtService;
+    return {
+      egi,
+      expenses,
+      noi,
+      dscr: base.annualDebtService > 0 ? noi / base.annualDebtService : NaN,
+      cashFlow
+    };
+  }
+
+  function displayScenarios(inputs, base) {
+    const scenarios = [
+      { name: "Conservative", rent: -5, vacancy: Math.max(inputs.vacancyPct + 5, 10), expenses: 10 },
+      { name: "Base", rent: 0, vacancy: inputs.vacancyPct, expenses: 0 },
+      { name: "Optimistic", rent: 5, vacancy: Math.max(0, inputs.vacancyPct - 2), expenses: -3 }
+    ];
+
+    $("scenarioCards").innerHTML = scenarios.map((scenario) => {
+      const result = scenarioMetrics(inputs, base, scenario.rent, scenario.vacancy, scenario.expenses);
+      return `
+        <article class="scenario-card">
+          <h3>${scenario.name}</h3>
+          <p class="muted">Rent ${scenario.rent >= 0 ? "+" : ""}${scenario.rent}% · Vacancy ${scenario.vacancy.toFixed(1)}% · Fixed expenses ${scenario.expenses >= 0 ? "+" : ""}${scenario.expenses}%</p>
+          <p><strong>NOI:</strong> ${money(result.noi)}</p>
+          <p><strong>DSCR:</strong> ${decimal(result.dscr)}</p>
+          <p><strong>Annual cash flow:</strong> ${money(result.cashFlow)}</p>
+        </article>
+      `;
+    }).join("");
+
+    const rentGrowth = inputs.annualRentGrowth / 100;
+    const expenseGrowth = inputs.annualExpenseGrowth / 100;
+    const exitCap = inputs.exitCapRate / 100;
+    const sellingCosts = inputs.sellingCostsPct / 100;
+    const rows = [];
+    const yearlyCashFlows = [];
+    const yearlyNoi = [];
+    const yearlyBalances = [];
+
+    for (let year = 1; year <= 10; year += 1) {
+      const egi = base.egi * Math.pow(1 + rentGrowth, year - 1);
+      const expenses = base.operatingExpenses * Math.pow(1 + expenseGrowth, year - 1);
+      const noi = egi - expenses;
+      const scheduleRows = base.schedule.slice((year - 1) * 12, year * 12);
+      const debtService = scheduleRows.reduce((sum, row) => sum + row.payment, 0);
+      const cashFlow = noi - debtService;
+      const endingBalance = scheduleRows.length ? scheduleRows[scheduleRows.length - 1].ending : 0;
+      rows.push({ year, egi, expenses, noi, debtService, cashFlow, endingBalance });
+      yearlyCashFlows.push(cashFlow);
+      yearlyNoi.push(noi);
+      yearlyBalances.push(endingBalance);
+    }
+
+    $("proFormaBody").innerHTML = rows.map((row) => `
+      <tr><td>${row.year}</td><td>${money(row.egi)}</td><td>${money(row.expenses)}</td><td>${money(row.noi)}</td><td>${money(row.debtService)}</td><td>${money(row.cashFlow)}</td><td>${money(row.endingBalance)}</td></tr>
+    `).join("");
+
+    function exitAnalysis(holdYears) {
+      if (exitCap <= 0 || base.cashInvested <= 0) return null;
+      const exitNoi = yearlyNoi[holdYears - 1];
+      const salePrice = exitNoi / exitCap;
+      const netSale = salePrice * (1 - sellingCosts) - yearlyBalances[holdYears - 1];
+      const cashFlows = [-base.cashInvested];
+      for (let year = 1; year <= holdYears; year += 1) {
+        let flow = yearlyCashFlows[year - 1];
+        if (year === holdYears) flow += netSale;
+        cashFlows.push(flow);
+      }
+      const calculatedIrr = irr(cashFlows);
+      const totalDistributions = cashFlows.slice(1).reduce((sum, value) => sum + value, 0);
+      return {
+        salePrice,
+        irr: calculatedIrr,
+        equityMultiple: totalDistributions / base.cashInvested
+      };
+    }
+
+    const five = exitAnalysis(5);
+    const ten = exitAnalysis(10);
+    $("salePrice5").textContent = five ? money(five.salePrice) : "N/A";
+    $("irr5").textContent = five && five.irr !== null ? pct(five.irr) : "N/A";
+    $("equityMultiple5").textContent = five ? decimal(five.equityMultiple) + "x" : "N/A";
+    $("salePrice10").textContent = ten ? money(ten.salePrice) : "N/A";
+    $("irr10").textContent = ten && ten.irr !== null ? pct(ten.irr) : "N/A";
+    $("equityMultiple10").textContent = ten ? decimal(ten.equityMultiple) + "x" : "N/A";
+  }
+
+  function calculateAll() {
+    const inputs = propertyInputs();
+    const metrics = calculateMetrics(inputs);
+    displayMetrics(inputs, metrics);
+  }
+
+  function serializeInputs() {
+    return propertyInputs();
+  }
+
+  function restoreInputs(data) {
+    const ids = [
+      "propertyName", "propertyType", "purchasePrice", "downPaymentPct", "closingCostsPct",
+      "interestRate", "amortYears", "loanTermYears", "interestOnlyMonths", "otherAnnualIncome",
+      "vacancyPct", "propertyTaxes", "insurance", "repairs", "utilities", "adminLegal",
+      "leasingAdvertising", "hoa", "managementPct", "capexReserve", "otherExpenses",
+      "annualRentGrowth", "annualExpenseGrowth", "exitCapRate", "sellingCostsPct"
+    ];
+    ids.forEach((id) => {
+      if (Object.prototype.hasOwnProperty.call(data, id)) $(id).value = data[id];
+    });
+    $("unitRows").innerHTML = "";
+    (Array.isArray(data.units) && data.units.length ? data.units : [{ name: "1 Bedroom", units: 8, rent: 1250 }])
+      .forEach((item) => addUnitRow(item.name, item.units, item.rent));
+    calculateAll();
+  }
+
+  function resetSample() {
+    restoreInputs({
+      propertyName: "Sample Property",
+      propertyType: "multifamily",
+      purchasePrice: 1000000,
+      downPaymentPct: 25,
+      closingCostsPct: 3,
+      interestRate: 6.5,
+      amortYears: 25,
+      loanTermYears: 10,
+      interestOnlyMonths: 0,
+      units: [
+        { name: "1 Bedroom", units: 8, rent: 1250 },
+        { name: "2 Bedroom", units: 4, rent: 1600 }
+      ],
+      otherAnnualIncome: 6000,
+      vacancyPct: 5,
+      propertyTaxes: 14000,
+      insurance: 10000,
+      repairs: 10000,
+      utilities: 6000,
+      adminLegal: 3000,
+      leasingAdvertising: 2500,
+      hoa: 0,
+      managementPct: 8,
+      capexReserve: 6000,
+      otherExpenses: 2000,
+      annualRentGrowth: 3,
+      annualExpenseGrowth: 3,
+      exitCapRate: 6.5,
+      sellingCostsPct: 6
+    });
+    $("saveStatus").textContent = "Sample assumptions restored.";
+  }
+
+  $("addUnitButton").addEventListener("click", () => {
+    addUnitRow("New Unit Type", 1, 1000);
+    calculateAll();
+  });
+  $("calculateButton").addEventListener("click", calculateAll);
+  $("scenarioButton").addEventListener("click", calculateAll);
+  $("printButton").addEventListener("click", () => window.print());
+  $("saveButton").addEventListener("click", () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serializeInputs()));
+    $("saveStatus").textContent = "Inputs saved on this browser.";
+  });
+  $("loadButton").addEventListener("click", () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+      $("saveStatus").textContent = "No saved property was found on this browser.";
+      return;
+    }
+    try {
+      restoreInputs(JSON.parse(saved));
+      $("saveStatus").textContent = "Saved inputs loaded.";
+    } catch (error) {
+      $("saveStatus").textContent = "The saved data could not be loaded.";
+    }
+  });
+  $("resetButton").addEventListener("click", resetSample);
+
+  document.querySelectorAll("input, select").forEach((input) => {
+    if (!input.closest(".unit-row")) input.addEventListener("input", calculateAll);
+  });
+
+  resetSample();
+})();
+</script>
+</body>
+</html>

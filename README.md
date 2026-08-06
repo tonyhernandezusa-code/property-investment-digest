@@ -2,12 +2,18 @@
 
 A free educational real-estate research and analysis website.
 
-## Migration 1
-- Protected County Investment Map
-- U.S. county and territory views
-- Zoom, pan, reset, labels, ranking table, dark mode, and Learning Mode
-- Property Investment Digest navigation and branding
-- Existing property calculator and educational pages
+## Migration 2
+- Protected County Investment Map retained
+- Detailed rent-roll and expense analysis
+- NOI, cap rate, DSCR, cash flow, cash-on-cash return
+- Break-even occupancy, LTV, debt yield, expense ratio, GRM
+- Mortgage and amortization schedules
+- Interest-only and balloon-balance calculations
+- Conservative, base, and optimistic scenarios
+- 5- and 10-year base pro forma
+- Illustrative sale price, IRR, and equity multiple
+- Browser save/load and print functions
+- Expanded Learning Center and methodology
 
-## Important
-The map was migrated from the protected working map baseline. Its map data and map logic were not redesigned in this migration.
+## Data policy
+Migration 2 uses only user-entered information and mathematical calculations. It does not add an external property-data source.
