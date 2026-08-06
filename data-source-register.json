@@ -1,30 +1,41 @@
 {
-  "register_version": 1,
-  "last_reviewed_utc": "2026-08-06T08:45:40+00:00",
+  "register_version": 2,
+  "last_reviewed_utc": "2026-08-06T09:05:16+00:00",
   "sources": [
     {
       "source_id": "census_acs_5year",
-      "source_name": "U.S. Census Bureau \u2014 ACS 5-Year Detailed Tables",
-      "status": "active",
+      "source_name": "U.S. Census Bureau \u2014 American Community Survey 5-Year Detailed Tables",
+      "status": "success",
       "cost": "Free",
+      "data_used": "Population, housing, tenure, vacancy, household income, gross rent, and home value.",
       "publication_basis": "Census Data API Terms of Service",
       "required_notice": "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.",
       "official_terms": "https://www.census.gov/data/developers/about/terms-of-service.html",
       "official_dataset_page": "https://www.census.gov/data/developers/data-sets/acs-5year/2024.html"
     },
     {
-      "source_id": "bls",
-      "source_name": "U.S. Bureau of Labor Statistics",
-      "status": "planned \u2014 not yet added"
+      "source_id": "bls_laus",
+      "source_name": "U.S. Bureau of Labor Statistics \u2014 Local Area Unemployment Statistics",
+      "status": "success",
+      "cost": "Free public API",
+      "data_used": "Seasonally adjusted monthly state unemployment rates and 12-month changes.",
+      "attribution": "Source: U.S. Bureau of Labor Statistics, Local Area Unemployment Statistics.",
+      "official_api": "https://www.bls.gov/developers/",
+      "official_program": "https://www.bls.gov/lau/"
     },
     {
-      "source_id": "fhfa",
-      "source_name": "Federal Housing Finance Agency",
-      "status": "planned \u2014 not yet added"
+      "source_id": "fhfa_hpi",
+      "source_name": "Federal Housing Finance Agency \u2014 Quarterly Purchase-Only State HPI",
+      "status": "success",
+      "cost": "Publicly available government dataset",
+      "data_used": "Seasonally adjusted state HPI and transparent quarter, one-year, five-year, and since-1991 changes.",
+      "attribution": "Source: Federal Housing Finance Agency House Price Index\u00ae.",
+      "official_dataset_page": "https://www.fhfa.gov/house-price-index",
+      "official_download": "https://www.fhfa.gov/hpi/download/quarterly_datasets/hpi_po_state.txt"
     },
     {
       "source_id": "hud",
-      "source_name": "HUD",
+      "source_name": "U.S. Department of Housing and Urban Development",
       "status": "planned \u2014 dataset-by-dataset review required"
     },
     {
@@ -36,7 +47,7 @@
       "source_id": "commercial_vendor",
       "source_name": "Commercial property-data vendor",
       "status": "not selected",
-      "publication_rule": "Do not add vendor data until written publication permission is retained."
+      "publication_rule": "Do not add vendor data until written permission confirms public display, storage, derivative analysis, reports, and future paid-subscriber use."
     }
   ]
 }
