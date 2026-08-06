@@ -1,0 +1,11 @@
+PROPERTY INVESTMENT DIGEST — START HERE
+
+1. Create a new PUBLIC GitHub repository named property-investment-digest
+2. Unzip property-investment-digest-starter.zip
+3. In the new repository click Add file > Upload files
+4. Upload the files themselves, not the outer folder
+5. Commit message: Add Property Investment Digest starter site
+6. Settings > Pages > Deploy from a branch > main > /(root) > Save
+7. Address: https://tonyhernandezusa-code.github.io/property-investment-digest/
+
+Do not edit or delete the existing Stock Digest repository yet.
