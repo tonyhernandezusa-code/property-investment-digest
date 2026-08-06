@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Government Data Update Center | Property Investment Digest</title>
+<meta name="description" content="Transparent Census data updates, state profiles, update status, and source permission records.">
+<link rel="stylesheet" href="styles.css"></head>
+<body><header><div class="header-wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
+<main>
+<div class="toolbar"><button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button></div>
+<section class="hero"><h1>Government Data Update Center</h1><p>This section separates directly retrieved government statistics from user-entered property information and privately licensed data.</p><span class="source-chip">Free Census API</span><span class="source-chip">Monthly automated check</span><span class="source-chip">Transparent source register</span></section>
+<div class="notice"><strong>Census attribution:</strong> This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.</div>
+<div class="learning-box"><strong>Learning Mode:</strong> ACS 5-year estimates combine five years of survey information. After the first automated update, this page compares the non-overlapping 2020–2024 and 2015–2019 periods.</div>
+<section class="grid">
+<article class="card"><div class="label">Update status</div><div class="value" id="statusValue">Loading…</div><p id="statusNote"></p></article>
+<article class="card"><div class="label">Current ACS vintage</div><div class="value" id="currentVintage">—</div></article>
+<article class="card"><div class="label">Comparison vintage</div><div class="value" id="comparisonVintage">—</div></article>
+<article class="card"><div class="label">State records</div><div class="value" id="recordCount">0</div></article>
+</section>
+<section class="card" style="margin-top:18px">
+<div class="market-controls"><div><label for="governmentState">State or territory</label><select id="governmentState"></select></div><div><label for="governmentCompare">Compare with</label><select id="governmentCompare"></select></div></div>
+<h2 id="governmentTitle">Census State Profile</h2><div class="market-profile" id="governmentCards"></div>
+</section>
+<section class="card" style="margin-top:18px"><h2>Side-by-Side Census Comparison</h2><div class="table-wrap"><table><thead><tr><th>Measurement</th><th id="leftHeading">State A</th><th id="rightHeading">State B</th></tr></thead><tbody id="governmentComparison"></tbody></table></div></section>
+<section class="card" style="margin-top:18px"><h2>Source Permission Register</h2><div class="table-wrap"><table><thead><tr><th>Source</th><th>Status</th><th>Cost</th><th>Publication note</th></tr></thead><tbody id="permissionBody"></tbody></table></div><p><a class="button secondary" href="data-source-register.json">View Source Register JSON</a> <a class="button secondary" href="census_state_data.json">View Census Data JSON</a></p></section>
+<section class="card" style="margin-top:18px"><h2>Update policy</h2><p>The workflow checks monthly, while ACS data generally changes when a new annual vintage is released. The system records the retrieval date, dataset vintage, attribution, and source status.</p><p>No paid property-data vendor has been added.</p></section>
+</main>
+<footer><strong>Educational research only.</strong> Government statistics and calculated ratios do not verify a particular property or recommend a location or transaction.</footer>
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const money=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const whole=new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+let records=[];
+function fmt(v,type){if(v===null||v===undefined||!Number.isFinite(Number(v)))return"N/A";v=Number(v);if(type==="money")return money.format(v);if(type==="integer")return whole.format(v);if(type==="percent")return v.toFixed(2)+"%";if(type==="ratio")return v.toFixed(2)+"x";return v.toFixed(2)}
+function byFips(f){return records.find(r=>r.state_fips===f)}
+function fill(el,selected){el.innerHTML=records.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(r=>`<option value="${r.state_fips}" ${r.state_fips===selected?"selected":""}>${r.name}</option>`).join("")}
+function card(label,value,note=""){return `<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`}
+function render(){
+const a=byFips($("governmentState").value),b=byFips($("governmentCompare").value);if(!a||!b)return;
+$("governmentTitle").textContent=a.name+" Census Profile";
+$("governmentCards").innerHTML=[
+card("Population",fmt(a.population,"integer"),fmt(a.population_change_pct,"percent")+" change"),
+card("Housing units",fmt(a.housing_units,"integer"),fmt(a.housing_units_change_pct,"percent")+" change"),
+card("Vacancy rate",fmt(a.vacancy_rate_pct,"percent")),
+card("Owner share of occupied units",fmt(a.owner_share_occupied_pct,"percent")),
+card("Renter share of occupied units",fmt(a.renter_share_occupied_pct,"percent")),
+card("Median household income",fmt(a.median_household_income,"money")),
+card("Median gross rent",fmt(a.median_gross_rent,"money")),
+card("Median home value",fmt(a.median_home_value,"money")),
+card("Home value ÷ income",fmt(a.home_value_to_income_ratio,"ratio")),
+card("Annual rent ÷ income",fmt(a.annual_rent_to_income_pct,"percent"))].join("");
+$("leftHeading").textContent=a.name;$("rightHeading").textContent=b.name;
+const rows=[["Population","population","integer"],["Population change","population_change_pct","percent"],["Housing units","housing_units","integer"],["Housing change","housing_units_change_pct","percent"],["Vacancy rate","vacancy_rate_pct","percent"],["Owner share","owner_share_occupied_pct","percent"],["Renter share","renter_share_occupied_pct","percent"],["Median household income","median_household_income","money"],["Median gross rent","median_gross_rent","money"],["Median home value","median_home_value","money"],["Home value ÷ income","home_value_to_income_ratio","ratio"],["Annual rent ÷ income","annual_rent_to_income_pct","percent"]];
+$("governmentComparison").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${fmt(a[r[1]],r[2])}</td><td>${fmt(b[r[1]],r[2])}</td></tr>`).join("");
+}
+Promise.all([
+fetch("census_state_data.json",{cache:"no-store"}).then(r=>r.json()),
+fetch("data-update-status.json",{cache:"no-store"}).then(r=>r.json()),
+fetch("data-source-register.json",{cache:"no-store"}).then(r=>r.json())
+]).then(([data,status,register])=>{
+records=Array.isArray(data.records)?data.records:[];
+$("statusValue").textContent=status.status||"Unknown";
+$("statusNote").textContent=status.message||status.updated_at_utc||"";
+$("currentVintage").textContent=data.current_vintage||"Awaiting first update";
+$("comparisonVintage").textContent=data.comparison_vintage||"Awaiting first update";
+$("recordCount").textContent=records.length;
+const a=records.some(r=>r.state_fips==="12")?"12":records[0].state_fips;
+const b=records.some(r=>r.state_fips==="48")?"48":records[Math.min(1,records.length-1)].state_fips;
+fill($("governmentState"),a);fill($("governmentCompare"),b);
+$("permissionBody").innerHTML=(register.sources||[]).map(s=>`<tr><td>${s.source_name||""}</td><td>${s.status||""}</td><td>${s.cost||"—"}</td><td>${s.publication_rule||s.publication_basis||"Review source terms before publication."}</td></tr>`).join("");
+render();
+}).catch(error=>{$("statusValue").textContent="Load error";$("statusNote").textContent="The government-data files could not be loaded.";console.error(error)});
+$("governmentState").addEventListener("change",render);$("governmentCompare").addEventListener("change",render);
+const learn=$("learningToggle");function setLearning(on){document.body.classList.toggle("learning-on",on);learn.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off")}
+learn.addEventListener("click",()=>setLearning(!document.body.classList.contains("learning-on")));setLearning(localStorage.getItem("pid_learning_mode")==="on");
+})();
+</script></body></html>

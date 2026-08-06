@@ -1,0 +1,35 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 5
+
+A. UPLOAD
+1. Download and unzip property-investment-digest-migration5.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file and the .github folder inside the unzipped folder.
+5. Drag them into GitHub.
+6. Commit message:
+   Add automated Census government data
+7. Click Commit changes.
+
+B. GET A FREE CENSUS API KEY
+1. Open https://api.census.gov/data/key_signup.html
+2. Enter organization and email.
+3. Accept the terms and submit.
+4. Activate the key from the Census email.
+
+C. ADD THE KEY TO GITHUB
+1. Repository > Settings > Secrets and variables > Actions.
+2. Click New repository secret.
+3. Name: CENSUS_API_KEY
+4. Paste the key.
+5. Click Add secret.
+
+D. RUN
+1. Actions > Update Government Data.
+2. Run workflow on main.
+3. Wait for green check and Pages deployment.
+4. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/government-data.html
+5. Press Ctrl + F5.
+
+Do not upload the ZIP file itself.
+Do not publish the API key in HTML, JavaScript, or a normal repository file.
