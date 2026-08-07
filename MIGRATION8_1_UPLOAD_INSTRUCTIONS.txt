@@ -1,0 +1,31 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.1 BALLOON PAYMENT FIX
+
+1. Download and unzip property-investment-digest-migration8-1-balloon-fix.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the extracted folder.
+5. Drag them into GitHub.
+6. Commit message:
+   Add hotel balloon payment analysis
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+9. Open:
+   https://tonyhernandezusa-code.github.io/property-investment-digest/hotel-analysis.html
+10. Press Ctrl + F5.
+
+TEST THE HOTEL FINANCING SECTION
+- Loan amount: $9,750,000
+- Interest: 6.75%
+- Amortization: 25 years
+- Loan term / balloon due: 10 years
+- Interest-only: 0 years
+
+Confirm that:
+- Balloon balance due at maturity appears in the results.
+- Estimated balances after Years 5 and 10 appear.
+- The 10-year pro forma has a Balloon Due column.
+- Changing the loan term changes the balloon balance.
+
+The Full Property Calculator also has clearer balloon terminology.
+
+NO GOVERNMENT DATA UPDATE IS REQUIRED FOR THIS FIX.

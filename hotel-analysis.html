@@ -95,9 +95,11 @@
       <div class="input-grid">
         <label>Loan amount <input data-field="loan" type="number" min="0" step="1000" value="9750000"></label>
         <label>Interest rate % <input data-field="rate" type="number" min="0" step="0.01" value="6.75"></label>
-        <label>Amortization years <input data-field="amortYears" type="number" min="1" step="1" value="25"></label>
-        <label>Interest-only years <input data-field="ioYears" type="number" min="0" step="1" value="0"></label>
+        <label>Amortization period (years) <input data-field="amortYears" type="number" min="1" step="1" value="25"></label>
+        <label>Loan term / balloon due (years) <input data-field="loanTermYears" type="number" min="1" step="1" value="10"></label>
+        <label>Interest-only period (years) <input data-field="ioYears" type="number" min="0" step="1" value="0"></label>
       </div>
+      <p class="metric-note"><strong>Balloon modeling:</strong> the scheduled payment is based on the stated amortization period, but the remaining principal becomes due at the end of the loan term. If the balloon occurs during the 10-year projection, the model shows it as an additional cash requirement and assumes it is paid from equity; no refinance is assumed.</p>
     </section>
 
     <section class="card">
@@ -132,7 +134,7 @@
     <h2>10-Year Illustrative Pro Forma</h2>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Year</th><th>Occupancy</th><th>ADR</th><th>Room Revenue</th><th>Total Revenue</th><th>NOI</th><th>Debt Service</th><th>Cash Flow</th></tr></thead>
+        <thead><tr><th>Year</th><th>Occupancy</th><th>ADR</th><th>Room Revenue</th><th>Total Revenue</th><th>NOI</th><th>Debt Service</th><th>Balloon Due</th><th>Cash Flow</th></tr></thead>
         <tbody id="proFormaBody"></tbody>
       </table>
     </div>
@@ -150,6 +152,7 @@
       <p><strong>Price per key:</strong> Purchase price divided by room count.</p>
       <p><strong>DSCR:</strong> NOI divided by annual debt service.</p>
       <p><strong>Debt yield:</strong> NOI divided by loan amount.</p>
+      <p><strong>Balloon payment:</strong> The unpaid principal balance due when the loan term ends before the stated amortization period has fully paid off the loan.</p>
     </div>
   </section>
 </main>
@@ -171,20 +174,26 @@ const num=v=>Number.isFinite(v)?numFmt.format(v):"N/A";
 const pct=v=>Number.isFinite(v)?v.toFixed(2)+"%":"N/A";
 const card=(label,value,note="")=>`<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`;
 
-function annualDebtService(loan,rate,years,io){
+function annualDebtService(loan,rate,years,interestOnly){
   if(loan<=0) return 0;
-  if(io) return loan*(rate/100);
-  const r=rate/100/12,n=years*12;
+  if(interestOnly) return loan*(rate/100);
+  const r=rate/100/12,n=Math.max(1,years*12);
   if(r===0) return loan/n*12;
   const p=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
   return p*12;
 }
-function loanBalance(loan,rate,years,yearsElapsed){
+function amortizingBalance(loan,rate,years,yearsElapsed){
   if(loan<=0) return 0;
-  const r=rate/100/12,n=years*12,k=Math.min(yearsElapsed*12,n);
+  const r=rate/100/12,n=Math.max(1,years*12),k=Math.min(Math.max(0,yearsElapsed*12),n);
   if(r===0) return Math.max(0,loan*(1-k/n));
   const payment=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
   return Math.max(0,loan*Math.pow(1+r,k)-payment*(Math.pow(1+r,k)-1)/r);
+}
+function balanceAfterYear(loan,rate,amortYears,ioYears,year){
+  if(loan<=0) return 0;
+  if(year<=0) return loan;
+  if(year<=ioYears) return loan;
+  return amortizingBalance(loan,rate,amortYears,year-ioYears);
 }
 function metrics(occ,adr,projectionFactor=1, otherRevenueFactor=1){
   const rooms=val("rooms"),available=rooms*365,occupied=available*(occ/100);
@@ -215,8 +224,12 @@ function irr(cashflows){
 
 function calculate(){
   const occ=Math.min(100,Math.max(0,val("occupancy"))),adr=val("adr"),base=metrics(occ,adr);
-  const loan=val("loan"),rate=val("rate"),amort=val("amortYears"),ioYears=val("ioYears");
-  const debt=annualDebtService(loan,rate,amort,ioYears>0);
+  const loan=val("loan"),rate=val("rate"),amort=val("amortYears"),ioYears=Math.max(0,val("ioYears"));
+  const loanTerm=Math.max(1,val("loanTermYears"));
+  const debt=annualDebtService(loan,rate,amort,ioYears>=1);
+  const balloonBalance=balanceAfterYear(loan,rate,amort,ioYears,loanTerm);
+  const balanceYear5=loanTerm<=5?0:balanceAfterYear(loan,rate,amort,ioYears,5);
+  const balanceYear10=loanTerm<=10?0:balanceAfterYear(loan,rate,amort,ioYears,10);
   const equity=Math.max(0,val("price")-loan);
   const dscr=debt>0?base.noi/debt:null;
   const fixedForBreakEven=(val("payroll")+val("utilities")+val("repairs")+val("marketing")+val("admin")+val("otherOpEx")+val("taxes")+val("insurance")+val("otherFixed"));
@@ -242,10 +255,14 @@ function calculate(){
     card("NOI margin",pct(base.totalRevenue?base.noi/base.totalRevenue*100:0)),
     card("Cap rate",pct(val("price")?base.noi/val("price")*100:0)),
     card("Price per key",money(val("rooms")?val("price")/val("rooms"):0)),
-    card("Annual debt service",money(debt),ioYears>0?"Interest-only debt service shown":"Amortizing debt service"),
+    card("Annual debt service — Year 1",money(debt),ioYears>=1?"Interest-only debt service shown":"Amortizing debt service"),
+    card("Loan term / balloon year",loanTerm.toFixed(0)+" years"),
+    card("Balloon balance due at maturity",money(balloonBalance),loanTerm<amort+ioYears?"Remaining principal due at loan maturity":"Loan is fully amortized by maturity"),
+    card("Estimated balance after Year 5",money(balanceYear5),loanTerm<=5?"Balloon assumed paid by this point":"Before any sale or refinance"),
+    card("Estimated balance after Year 10",money(balanceYear10),loanTerm<=10?"Balloon assumed paid by this point":"Before any sale or refinance"),
     card("DSCR",dscr!==null?dscr.toFixed(2)+"x":"N/A"),
     card("Debt yield",pct(loan?base.noi/loan*100:0)),
-    card("Cash flow before tax",money(base.noi-debt)),
+    card("Cash flow before tax — Year 1",money(base.noi-debt)),
     card("Cash-on-cash",pct(equity?(base.noi-debt)/equity*100:0)),
     card("Illustrative debt-service break-even occupancy",breakEvenOcc!==null?pct(breakEvenOcc):"N/A","Simplified sensitivity calculation")
   ].join("");
@@ -260,7 +277,7 @@ function calculate(){
     return `<tr><td>${name}</td><td>${pct(o)}</td><td>${money(a)}</td><td>${money(m.revpar)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${d!==null?d.toFixed(2)+"x":"N/A"}</td></tr>`;
   }).join("");
 
-  let rows="",cashflows=[-equity],totalPositive=0,lastNoi=0;
+  let rows="",cashflows=[-equity],totalDistributions=0,totalEquityInvested=equity;
   const expenseGrowth=val("expenseGrowth")/100,adrGrowth=val("adrGrowth")/100,otherGrowth=val("otherRevenueGrowth")/100;
   for(let year=1;year<=10;year++){
     const yOcc=Math.min(100,Math.max(0,occ+val("occupancyChange")*(year-1)));
@@ -268,10 +285,13 @@ function calculate(){
     const expFactor=Math.pow(1+expenseGrowth,year-1);
     const otherFactor=Math.pow(1+otherGrowth,year-1);
     const m=metrics(yOcc,yAdr,expFactor,otherFactor);
-    const yearDebt=annualDebtService(loan,rate,amort,year<=ioYears);
-    const cf=m.noi-yearDebt;
-    cashflows.push(cf); totalPositive+=cf; lastNoi=m.noi;
-    rows+=`<tr><td>${year}</td><td>${pct(yOcc)}</td><td>${money(yAdr)}</td><td>${money(m.roomRevenue)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${money(yearDebt)}</td><td>${money(cf)}</td></tr>`;
+    const beforeMaturity=year<=loanTerm;
+    const yearDebt=beforeMaturity?annualDebtService(loan,rate,amort,year<=ioYears):0;
+    const balloonDue=year===Math.ceil(loanTerm)?balloonBalance:0;
+    const cf=m.noi-yearDebt-balloonDue;
+    cashflows.push(cf);
+    if(cf>=0) totalDistributions+=cf; else totalEquityInvested+=Math.abs(cf);
+    rows+=`<tr><td>${year}</td><td>${pct(yOcc)}</td><td>${money(yAdr)}</td><td>${money(m.roomRevenue)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${money(yearDebt)}</td><td>${money(balloonDue)}</td><td>${money(cf)}</td></tr>`;
   }
   $("proFormaBody").innerHTML=rows;
   const year11Occ=Math.min(100,Math.max(0,occ+val("occupancyChange")*10));
@@ -280,18 +300,20 @@ function calculate(){
   const exitCap=val("exitCap")/100;
   const grossSale=exitCap>0?year11.noi/exitCap:0;
   const netSale=grossSale*(1-val("sellingCostPct")/100);
-  const balance=ioYears>=10?loan:loanBalance(loan,rate,amort,Math.max(0,10-ioYears));
+  const balance=loanTerm<=10?0:balanceAfterYear(loan,rate,amort,ioYears,10);
   const saleEquity=Math.max(0,netSale-balance);
   cashflows[10]+=saleEquity;
-  totalPositive+=saleEquity;
+  totalDistributions+=saleEquity;
   const projectIrr=irr(cashflows);
   $("returnResults").innerHTML=[
     card("Initial equity",money(equity)),
+    card("Balloon due at loan maturity",money(balloonBalance),"Due at end of Year "+loanTerm.toFixed(0)),
     card("Illustrative Year 11 NOI",money(year11.noi)),
     card("Illustrative gross sale value",money(grossSale),"Year 11 NOI ÷ exit cap"),
-    card("Estimated loan balance at exit",money(balance)),
+    card("Estimated loan balance at Year 10 exit",money(balance),loanTerm<=10?"Balloon assumed paid before or at the exit":"Remaining principal before sale payoff"),
     card("Illustrative net sale equity",money(saleEquity)),
-    card("10-year equity multiple",equity>0?(totalPositive/equity).toFixed(2)+"x":"N/A"),
+    card("Total modeled equity invested",money(totalEquityInvested),"Includes additional equity if operating cash flow or a balloon payment is negative"),
+    card("10-year equity multiple",totalEquityInvested>0?(totalDistributions/totalEquityInvested).toFixed(2)+"x":"N/A"),
     card("Illustrative 10-year IRR",projectIrr!==null?pct(projectIrr*100):"N/A")
   ].join("");
 }
