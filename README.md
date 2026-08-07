@@ -1,32 +1,11 @@
-# Property Investment Digest — Migration 8.5
+# Property Investment Digest — Migration 8.6
 
-Adds `property-search.html` as an Authorized Professional Property Search.
+Adds `stocks.html` using free public SEC EDGAR data for major U.S. public companies.
 
-The page restores the main address-level research presentation from the older site:
-- Property characteristics
-- Building details
-- Lot / area
-- Assessment and property tax
-- Ownership
-- Most recent mortgage
-- Sales history
-- AVM when available
-- Comparable sales when available
-- Schools when available
-- Neighborhood Census context
-- Satellite map
-- Recent searches stored only in the browser
+Included: company identity, revenue, net income, diluted EPS, operating cash flow, capital expenditures, modeled free cash flow, assets, liabilities, equity, cash, long-term debt when available, shares outstanding, growth rates, margins, balance-sheet ratios, recent SEC filing links, and annual history where comparable facts are available.
 
-Security design:
-- No public sign-up button.
-- Firebase email/password sign-in.
-- Authenticated requests send a Firebase ID token to the existing ATTOM Cloudflare Worker.
-- `WORKER_AUTH_PATCH.js` is included so the existing Worker can validate the token and enforce an authorized-email allow-list server-side.
+Not included: live/delayed stock prices, intraday charts, proprietary index values, futures prices, market-news feeds, P/E or market capitalization dependent on a market quote.
 
-IMPORTANT:
-The website package alone does NOT make the old Worker private.
-The Worker security patch must be merged and deployed before the ATTOM data endpoint is considered protected.
-
-Foreclosure search remains disabled because the older project identified it as a separate ATTOM premium product.
-
-No government-data update is required.
+`update_stock_fundamentals.py` uses SEC EDGAR.
+`.github/workflows/update-stock-fundamentals.yml` runs manually or weekly.
+No paid API key is required.

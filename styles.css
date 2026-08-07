@@ -294,3 +294,6 @@
 
 /* Migration 8.5: authorized property search */
 .link-button{background:none;border:0;padding:2px 5px;color:#1f4e79;text-decoration:underline;cursor:pointer;font:inherit}
+
+/* Migration 8.6: Stocks & Markets */
+.stock-search-row{display:grid;grid-template-columns:minmax(240px,1fr) minmax(260px,1fr);gap:12px}.stock-search-row select{width:100%;padding:10px;border:1px solid #c9d3dd;border-radius:9px;font-size:1rem;background:#fff}.stock-company-heading{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}.source-chip{display:inline-block;margin:4px 6px 0 0;padding:5px 9px;border-radius:999px;background:#eaf4f0;color:#0a4e3a;font-size:.82rem;font-weight:700}.market-profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}@media(max-width:720px){.stock-search-row{grid-template-columns:1fr}}

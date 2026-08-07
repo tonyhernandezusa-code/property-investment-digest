@@ -1,0 +1,30 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.6
+FREE STOCK FUNDAMENTALS
+
+1. Download and unzip property-investment-digest-migration8-6-free-stock-fundamentals.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Upload every file and folder inside the extracted Migration 8.6 folder.
+5. Be sure the .github folder is included.
+6. Commit message:
+   Add free SEC stock fundamentals
+7. Click Commit changes.
+
+THEN RUN THE STOCK UPDATE ONCE
+1. Click Actions.
+2. Click Update Stock Fundamentals on the left.
+3. Click Run workflow.
+4. Leave Branch set to main.
+5. Click the green Run workflow button.
+6. Wait for the green check mark.
+
+Then open:
+https://tonyhernandezusa-code.github.io/property-investment-digest/stocks.html
+
+Press Ctrl + F5.
+
+No paid stock-data API is used.
+No FRED key is required.
+No Census-key change is required.
+Do not run Update Government Data just for this migration.
+Live/delayed stock prices are intentionally not included.
