@@ -11,7 +11,6 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -26,8 +25,9 @@ jobs:
 
       - name: Update SEC stock fundamentals
         env:
-          SEC_USER_AGENT: "PropertyInvestmentDigest/1.0 https://tonyhernandezusa-code.github.io/property-investment-digest/"
-        run: python update_stock_fundamentals.py
+          PYTHONUNBUFFERED: "1"
+          SEC_USER_AGENT: "PropertyInvestmentDigest/1.0 chambelon@aol.com https://tonyhernandezusa-code.github.io/property-investment-digest/"
+        run: python -u update_stock_fundamentals.py
 
       - name: Commit updated stock data
         run: |
