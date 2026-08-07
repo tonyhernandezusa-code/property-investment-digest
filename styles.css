@@ -297,3 +297,15 @@
 
 /* Migration 8.6: Stocks & Markets */
 .stock-search-row{display:grid;grid-template-columns:minmax(240px,1fr) minmax(260px,1fr);gap:12px}.stock-search-row select{width:100%;padding:10px;border:1px solid #c9d3dd;border-radius:9px;font-size:1rem;background:#fff}.stock-company-heading{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}.source-chip{display:inline-block;margin:4px 6px 0 0;padding:5px 9px;border-radius:999px;background:#eaf4f0;color:#0a4e3a;font-size:.82rem;font-weight:700}.market-profile{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}@media(max-width:720px){.stock-search-row{grid-template-columns:1fr}}
+
+/* Migration 8.7: authorized encrypted Yahoo stocks */
+.stock-login-card{max-width:760px;margin:20px auto}
+.stock-password-row{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:12px}
+.stock-password-row input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #c9d3dd;border-radius:9px;font-size:1rem}
+.positive{color:#08783f;font-weight:700}
+.negative{color:#b3261e;font-weight:700}
+#stockBody tr[data-ticker]{cursor:pointer}
+#stockBody tr[data-ticker]:hover{background:#f2f7f5}
+.mini-chart-wrap{margin-top:16px;border:1px solid #d8e0e6;border-radius:12px;padding:10px;overflow:hidden}
+#stockChart{width:100%;height:240px;color:#176b55;background:#fbfdfc;border-radius:8px}
+@media(max-width:720px){.stock-password-row{grid-template-columns:1fr}}

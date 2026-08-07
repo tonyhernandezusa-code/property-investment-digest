@@ -1,50 +1,308 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Stocks & Markets | Property Investment Digest</title>
-<meta name="description" content="Free public-company fundamentals and SEC filing research using U.S. SEC EDGAR data, with transparent calculated financial ratios.">
-<link rel="stylesheet" href="styles.css"></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Authorized Stocks & Markets | Property Investment Digest</title>
+  <meta name="description" content="Password-restricted development market dashboard using the existing Yahoo Finance/yfinance system.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
 <header><div class="wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="stocks.html">Stocks &amp; Markets</a><a href="property-search.html">Property Search</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="hotel-market.html">Hotel Market</a><a href="hotel-analysis.html">Hotel Analysis</a><a href="home-mortgage.html">Home Mortgage</a><a href="home-affordability.html">Affordability</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
+
 <main>
-<div class="toolbar"><button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button></div>
-<section class="hero"><h1>Stocks &amp; Markets</h1><p>Free public-company fundamentals from SEC EDGAR, with transparent calculations and direct links to company filings.</p><span class="source-chip">SEC EDGAR</span><span class="source-chip">Company Fundamentals</span><span class="source-chip">10-K / 10-Q / 8-K</span><span class="source-chip">No Paid Quote Feed</span></section>
-<div class="learning-box"><strong>Learning Mode:</strong> Financial statements show the operating and balance-sheet history reported by the company. They are different from a stock quote. This page intentionally separates free public filing data from market-price data that may require separate redistribution rights.</div>
-<section class="notice" id="updateNotice"><strong>First-time setup:</strong> After Migration 8.6 is uploaded, run the GitHub Action named <strong>Update Stock Fundamentals</strong> once. The page will then populate automatically from SEC EDGAR and refresh weekly.</section>
-<section class="card"><h2>Company Search</h2><div class="stock-search-row"><input id="stockSearch" type="search" placeholder="Search ticker or company name — e.g. AAPL or Apple"><select id="stockSelect"><option value="">Loading companies…</option></select></div><p class="metric-note" id="dataStatus">Loading stock fundamentals…</p></section>
-<section class="card" id="companySection" style="margin-top:18px;display:none">
-<div class="stock-company-heading"><div><h2 id="companyName">Company</h2><p class="metric-note" id="companyMeta"></p></div><a class="button secondary" id="secCompanyLink" target="_blank" rel="noopener">Open SEC filings</a></div>
-<h3 class="section-title">Latest Reported Fundamentals</h3><div class="market-profile" id="financialCards"></div>
-<h3 class="section-title">Calculated Financial Ratios</h3><div class="market-profile" id="ratioCards"></div>
-<h3 class="section-title">Annual History</h3><div class="table-wrap"><table><thead><tr><th>Fiscal Year</th><th>Revenue</th><th>Net Income</th><th>Diluted EPS</th><th>Operating Cash Flow</th><th>CapEx</th></tr></thead><tbody id="historyBody"></tbody></table></div>
-<h3 class="section-title">Recent SEC Filings</h3><div class="table-wrap"><table><thead><tr><th>Form</th><th>Filed</th><th>Report Date</th><th>Open</th></tr></thead><tbody id="filingsBody"></tbody></table></div>
-</section>
-<section class="card" style="margin-top:18px"><h2>Market Price &amp; Valuation Data</h2><div class="notice"><strong>Not included in this free-data migration:</strong> live/delayed stock prices, intraday charts, exchange feeds, proprietary index values, futures quotes, and price-dependent ratios such as P/E and market capitalization.</div><p>Those can be added later after a data source is selected that expressly permits display on this website and, if applicable, use by subscribers. The old Stock Digest website is not changed by this migration.</p></section>
-<section class="card" style="margin-top:18px"><h2>How These Numbers Are Used</h2><div class="grid"><article><h3>Growth</h3><p>Revenue growth and EPS growth compare the latest reported fiscal year with the prior reported fiscal year when both are available.</p></article><article><h3>Profitability</h3><p>Net margin equals reported annual net income divided by reported annual revenue.</p></article><article><h3>Cash Generation</h3><p>Free cash flow is modeled as reported operating cash flow minus reported capital expenditures when both facts are available.</p></article><article><h3>Balance Sheet</h3><p>Liabilities-to-assets and equity-to-assets compare the latest available balance-sheet facts filed in a 10-Q or 10-K.</p></article></div></section>
-<section class="card" style="margin-top:18px"><h2>Important Limitations</h2><p>SEC XBRL facts come from issuer filings. Companies can use different tags, definitions, fiscal calendars and amended filings. A missing value means the updater could not identify a comparable standardized fact; it does not necessarily mean the company has no such item.</p><p>This page provides factual research and transparent calculations. It does not rate a stock as a buy, sell, or hold and does not forecast investment returns.</p></section>
+  <section class="hero">
+    <h1>Stocks &amp; Markets — Authorized Development Access</h1>
+    <p>This development dashboard uses the Yahoo Finance/yfinance market-data system already proven in the original Stock Digest.</p>
+    <span class="source-chip">Password Restricted</span>
+    <span class="source-chip">Encrypted Market Data</span>
+    <span class="source-chip">Yahoo Finance / yfinance</span>
+    <span class="source-chip">Development Only</span>
+  </section>
+
+  <section class="card stock-login-card" id="loginCard">
+    <h2>Enter Stock Access Password</h2>
+    <p>The market-data file stored on GitHub Pages is encrypted. The password is not stored in this webpage or repository.</p>
+    <div class="stock-password-row">
+      <input id="stockPassword" type="password" autocomplete="current-password" placeholder="Authorized access password">
+      <button class="button" id="unlockButton" type="button">Unlock Stocks &amp; Markets</button>
+    </div>
+    <p class="error-line" id="unlockError"></p>
+    <p class="metric-note">This access restriction is for development/testing. Password protection does not change Yahoo Finance or yfinance licensing terms.</p>
+  </section>
+
+  <div id="dashboard" style="display:none">
+    <section class="notice">
+      <strong>Authorized Development Access:</strong> This section is being used to develop and evaluate Property Investment Digest. Yahoo-derived market information should not be treated as approved for a paid subscriber launch unless the necessary commercial display rights are confirmed.
+    </section>
+
+    <section class="card">
+      <div class="stock-company-heading">
+        <div>
+          <h2>Market Overview</h2>
+          <p class="metric-note" id="dataStatus"></p>
+        </div>
+        <button class="button secondary" id="lockButton" type="button">Lock</button>
+      </div>
+      <div class="market-profile" id="overviewCards"></div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Stock Watchlist</h2>
+      <div class="stock-search-row">
+        <input id="stockSearch" type="search" placeholder="Search ticker, company, or sector">
+        <select id="stockSort">
+          <option value="ticker">Sort: Ticker</option>
+          <option value="change_desc">Sort: Daily Gain</option>
+          <option value="change_asc">Sort: Daily Decline</option>
+          <option value="marketcap_desc">Sort: Market Cap</option>
+          <option value="rsi_desc">Sort: RSI High</option>
+          <option value="rsi_asc">Sort: RSI Low</option>
+        </select>
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead>
+            <tr>
+              <th>Ticker</th><th>Company</th><th>Price</th><th>1 Day</th><th>6 Months</th>
+              <th>RSI</th><th>Market Cap</th><th>P/E</th><th>Dividend Yield</th>
+              <th>52W Low</th><th>52W High</th>
+            </tr>
+          </thead>
+          <tbody id="stockBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Selected Stock</h2>
+      <div class="stock-company-heading">
+        <div>
+          <h3 id="selectedName">Select a stock</h3>
+          <p class="metric-note" id="selectedMeta"></p>
+        </div>
+        <select id="stockSelect"></select>
+      </div>
+      <div class="market-profile" id="selectedCards"></div>
+      <div class="mini-chart-wrap">
+        <svg id="stockChart" viewBox="0 0 900 240" preserveAspectRatio="none" aria-label="Selected stock price history"></svg>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Major Market Indexes</h2>
+      <div class="table-wrap"><table><thead><tr><th>Market</th><th>Symbol</th><th>Latest</th><th>1 Day</th><th>1 Month</th></tr></thead><tbody id="indexBody"></tbody></table></div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Index Futures</h2>
+      <div class="table-wrap"><table><thead><tr><th>Future</th><th>Symbol</th><th>Latest</th><th>1 Day</th><th>1 Month</th></tr></thead><tbody id="futureBody"></tbody></table></div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>Commodities</h2>
+      <div class="table-wrap"><table><thead><tr><th>Commodity</th><th>Symbol</th><th>Latest</th><th>1 Day</th><th>1 Month</th></tr></thead><tbody id="commodityBody"></tbody></table></div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>What This Development Version Includes</h2>
+      <div class="grid">
+        <article><h3>Stock Prices</h3><p>Latest daily close, one-day change, six-month change and 52-week range.</p></article>
+        <article><h3>Technical Context</h3><p>14-day RSI, volume and three-month average volume.</p></article>
+        <article><h3>Company Metrics</h3><p>Market capitalization, trailing P/E and dividend yield when Yahoo/yfinance returns those fields.</p></article>
+        <article><h3>Broader Markets</h3><p>Major U.S. and international indexes, index futures and selected commodities.</p></article>
+      </div>
+    </section>
+  </div>
 </main>
-<footer><strong>Source:</strong> U.S. Securities and Exchange Commission EDGAR. Property Investment Digest is not affiliated with or endorsed by the SEC. Educational research only; not investment advice.</footer>
+
+<footer>
+  <strong>Authorized development/testing only.</strong> Yahoo Finance/yfinance market information is not represented as licensed for commercial subscriber redistribution. This restriction does not create or expand data rights. Educational research; not investment advice.
+</footer>
+
 <script>
 (function(){
 "use strict";
-let companies=[];
+let DATA=null;
+let stocks=[];
+
 const $=id=>document.getElementById(id);
-const mf=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",notation:"compact",maximumFractionDigits:2});
-const intf=new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2});
-function value(o){return o&&o.value!==undefined&&o.value!==null?Number(o.value):null}
-function money(o){const n=value(o);return Number.isFinite(n)?mf.format(n):"N/A"}
-function shares(o){const n=value(o);return Number.isFinite(n)?intf.format(n):"N/A"}
-function eps(o){const n=value(o);return Number.isFinite(n)?"$"+n.toFixed(2):"N/A"}
-function pct(n){n=Number(n);return Number.isFinite(n)?n.toFixed(2)+"%":"N/A"}
-function period(o){return o&&o.end?o.end:""}
-function card(a,b,c=""){return `<div class="result"><div class="label">${a}</div><div class="value">${b}</div>${c?`<div class="metric-note">${c}</div>`:""}</div>`}
-function hist(h,y){return Array.isArray(h)?h.find(x=>String(x.fy||x.end)===String(y)):null}
-function choose(c){if(!c)return;const f=c.financials||{},r=c.ratios||{};$("companySection").style.display="block";$("companyName").textContent=`${c.name} (${c.ticker})`;const ex=(c.exchanges||[]).filter(Boolean).join(", ");$("companyMeta").textContent=[ex?`Exchange: ${ex}`:"",c.sic_description?`Industry: ${c.sic_description}`:"",c.cik?`CIK: ${c.cik}`:""].filter(Boolean).join(" • ");$("secCompanyLink").href=c.sec_company_url||"https://www.sec.gov/edgar/search/";
-$("financialCards").innerHTML=[card("Annual Revenue",money(f.revenue),period(f.revenue)),card("Annual Net Income",money(f.net_income),period(f.net_income)),card("Diluted EPS",eps(f.eps_diluted),period(f.eps_diluted)),card("Operating Cash Flow",money(f.operating_cash_flow),period(f.operating_cash_flow)),card("Capital Expenditures",money(f.capex),period(f.capex)),card("Modeled Free Cash Flow",money(f.free_cash_flow),period(f.free_cash_flow)),card("Total Assets",money(f.assets),period(f.assets)),card("Total Liabilities",money(f.liabilities),period(f.liabilities)),card("Stockholders' Equity",money(f.equity),period(f.equity)),card("Cash / Cash Equivalents",money(f.cash),period(f.cash)),card("Long-Term Debt",money(f.long_term_debt),period(f.long_term_debt)),card("Shares Outstanding",shares(f.shares_outstanding),period(f.shares_outstanding))].join("");
-$("ratioCards").innerHTML=[card("Revenue Growth — YoY",pct(r.revenue_growth_yoy_pct)),card("Net Income Growth — YoY",pct(r.net_income_growth_yoy_pct)),card("Diluted EPS Growth — YoY",pct(r.eps_growth_yoy_pct)),card("Net Margin",pct(r.net_margin_pct)),card("Free Cash Flow Margin",pct(r.free_cash_flow_margin_pct)),card("Liabilities / Assets",pct(r.liabilities_to_assets_pct)),card("Equity / Assets",pct(r.equity_to_assets_pct))].join("");
-const ys=[...(f.revenue_history||[]).map(x=>x.fy||x.end),...(f.net_income_history||[]).map(x=>x.fy||x.end),...(f.eps_history||[]).map(x=>x.fy||x.end)];const years=[...new Set(ys.filter(Boolean).map(String))].sort().reverse().slice(0,5);$("historyBody").innerHTML=years.map(y=>`<tr><td>${y}</td><td>${money(hist(f.revenue_history,y))}</td><td>${money(hist(f.net_income_history,y))}</td><td>${eps(hist(f.eps_history,y))}</td><td>${money(hist(f.operating_cash_flow_history,y))}</td><td>${money(hist(f.capex_history,y))}</td></tr>`).join("")||'<tr><td colspan="6">No comparable annual history identified.</td></tr>';
-$("filingsBody").innerHTML=(c.recent_filings||[]).map(x=>`<tr><td><strong>${x.form||""}</strong></td><td>${x.filing_date||""}</td><td>${x.report_date||""}</td><td><a href="${x.url}" target="_blank" rel="noopener">Open filing</a></td></tr>`).join("")||'<tr><td colspan="4">No recent filings returned.</td></tr>'}
-function populate(list=companies){$("stockSelect").innerHTML=list.map(c=>`<option value="${companies.indexOf(c)}">${c.ticker} — ${c.name}</option>`).join("");if(list.length){$("stockSelect").value=String(companies.indexOf(list[0]));choose(list[0])}}
-$("stockSelect").addEventListener("change",()=>choose(companies[Number($("stockSelect").value)]));
-$("stockSearch").addEventListener("input",()=>{const q=$("stockSearch").value.trim().toLowerCase();populate(q?companies.filter(c=>c.ticker.toLowerCase().includes(q)||(c.name||"").toLowerCase().includes(q)):companies)});
-fetch("stock-fundamentals.json?ts="+Date.now()).then(r=>{if(!r.ok)throw new Error();return r.json()}).then(d=>{companies=(d.companies||[]).sort((a,b)=>a.ticker.localeCompare(b.ticker));const updated=d.updated_at_utc?new Date(d.updated_at_utc).toLocaleString():"Not run yet";$("dataStatus").textContent=`Source: ${d.source||"SEC EDGAR"} • Companies loaded: ${companies.length} • Last update: ${updated}`;if(companies.length){$("updateNotice").style.display="none";populate()}else{$("stockSelect").innerHTML='<option>Run Update Stock Fundamentals first</option>'}}).catch(()=>{$("dataStatus").textContent="Stock fundamentals have not been generated yet.";$("stockSelect").innerHTML='<option>Run Update Stock Fundamentals first</option>'});
-const b=$("learningToggle");function learning(on){document.body.classList.toggle("learning-on",on);b.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off")}b.onclick=()=>learning(!document.body.classList.contains("learning-on"));learning(localStorage.getItem("pid_learning_mode")==="on");
+const usd=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:2});
+const compact=new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2});
+const plain=new Intl.NumberFormat("en-US",{maximumFractionDigits:4});
+
+function b64bytes(text){
+  const binary=atob(text);
+  const bytes=new Uint8Array(binary.length);
+  for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
+  return bytes;
+}
+function fmtMoney(v){v=Number(v);return Number.isFinite(v)?usd.format(v):"N/A";}
+function fmtNum(v){v=Number(v);return Number.isFinite(v)?plain.format(v):"N/A";}
+function fmtCompact(v){v=Number(v);return Number.isFinite(v)?"$"+compact.format(v):"N/A";}
+function fmtPct(v){v=Number(v);return Number.isFinite(v)?v.toFixed(2)+"%":"N/A";}
+function pctClass(v){v=Number(v);return !Number.isFinite(v)?"":v>0?"positive":v<0?"negative":"";}
+function card(label,value,note=""){return `<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`;}
+
+async function deriveKey(password,salt,iterations){
+  const material=await crypto.subtle.importKey(
+    "raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveKey"]
+  );
+  return crypto.subtle.deriveKey(
+    {name:"PBKDF2",salt,iterations,hash:"SHA-256"},
+    material,
+    {name:"AES-GCM",length:256},
+    false,
+    ["decrypt"]
+  );
+}
+async function unlock(){
+  $("unlockError").textContent="";
+  const password=$("stockPassword").value;
+  if(!password){$("unlockError").textContent="Enter the authorized stock access password.";return;}
+  $("unlockButton").disabled=true;
+  $("unlockButton").textContent="Unlocking…";
+  try{
+    const response=await fetch("authorized-stocks.enc.json?ts="+Date.now(),{cache:"no-store"});
+    if(!response.ok) throw new Error("Encrypted stock-data file was not found.");
+    const envelope=await response.json();
+    if(!envelope.ciphertext_b64){
+      throw new Error("The encrypted stock-data file has not been generated yet. Run Update Authorized Stocks in GitHub Actions.");
+    }
+    const salt=b64bytes(envelope.salt_b64);
+    const nonce=b64bytes(envelope.nonce_b64);
+    const ciphertext=b64bytes(envelope.ciphertext_b64);
+    const key=await deriveKey(password,salt,Number(envelope.iterations)||250000);
+    const decrypted=await crypto.subtle.decrypt({name:"AES-GCM",iv:nonce},key,ciphertext);
+    DATA=JSON.parse(new TextDecoder().decode(decrypted));
+    stocks=(DATA.stocks||[]).slice();
+    $("stockPassword").value="";
+    $("loginCard").style.display="none";
+    $("dashboard").style.display="block";
+    renderAll();
+  }catch(err){
+    $("unlockError").textContent=err && err.name==="OperationError"
+      ? "Incorrect password or unreadable encrypted stock data."
+      : (err.message||"Could not unlock the stock dashboard.");
+  }finally{
+    $("unlockButton").disabled=false;
+    $("unlockButton").textContent="Unlock Stocks & Markets";
+  }
+}
+function lock(){
+  DATA=null;stocks=[];
+  $("dashboard").style.display="none";
+  $("loginCard").style.display="block";
+  $("stockPassword").focus();
+}
+function sortStocks(list){
+  const mode=$("stockSort").value;
+  const arr=list.slice();
+  if(mode==="change_desc") arr.sort((a,b)=>(b.change_1d_pct??-9999)-(a.change_1d_pct??-9999));
+  else if(mode==="change_asc") arr.sort((a,b)=>(a.change_1d_pct??9999)-(b.change_1d_pct??9999));
+  else if(mode==="marketcap_desc") arr.sort((a,b)=>(b.market_cap??-1)-(a.market_cap??-1));
+  else if(mode==="rsi_desc") arr.sort((a,b)=>(b.rsi_14??-1)-(a.rsi_14??-1));
+  else if(mode==="rsi_asc") arr.sort((a,b)=>(a.rsi_14??999)-(b.rsi_14??999));
+  else arr.sort((a,b)=>a.ticker.localeCompare(b.ticker));
+  return arr;
+}
+function renderStocks(){
+  const q=$("stockSearch").value.trim().toLowerCase();
+  let list=stocks.filter(s=>!q||s.ticker.toLowerCase().includes(q)||(s.name||"").toLowerCase().includes(q)||(s.sector||"").toLowerCase().includes(q));
+  list=sortStocks(list);
+  $("stockBody").innerHTML=list.map(s=>`<tr data-ticker="${s.ticker}">
+    <td><strong>${s.ticker}</strong></td>
+    <td>${s.name||""}</td>
+    <td>${fmtMoney(s.price)}</td>
+    <td class="${pctClass(s.change_1d_pct)}">${fmtPct(s.change_1d_pct)}</td>
+    <td class="${pctClass(s.change_6m_pct)}">${fmtPct(s.change_6m_pct)}</td>
+    <td>${s.rsi_14==null?"N/A":Number(s.rsi_14).toFixed(1)}</td>
+    <td>${s.market_cap==null?"N/A":fmtCompact(s.market_cap)}</td>
+    <td>${s.pe_trailing==null?"N/A":Number(s.pe_trailing).toFixed(2)}</td>
+    <td>${s.dividend_yield_pct==null?"N/A":fmtPct(s.dividend_yield_pct)}</td>
+    <td>${fmtMoney(s.low_52w)}</td><td>${fmtMoney(s.high_52w)}</td>
+  </tr>`).join("")||'<tr><td colspan="11">No matching stocks.</td></tr>';
+  document.querySelectorAll("#stockBody tr[data-ticker]").forEach(row=>{
+    row.addEventListener("click",()=>{
+      $("stockSelect").value=row.dataset.ticker;
+      renderSelected();
+      document.getElementById("selectedName").scrollIntoView({behavior:"smooth",block:"center"});
+    });
+  });
+}
+function renderSelected(){
+  const ticker=$("stockSelect").value;
+  const s=stocks.find(x=>x.ticker===ticker);
+  if(!s)return;
+  $("selectedName").textContent=`${s.name||s.ticker} (${s.ticker})`;
+  $("selectedMeta").textContent=s.sector?`Sector: ${s.sector}`:"";
+  $("selectedCards").innerHTML=[
+    card("Price",fmtMoney(s.price)),
+    card("1-Day Change",fmtPct(s.change_1d_pct)),
+    card("6-Month Change",fmtPct(s.change_6m_pct)),
+    card("RSI (14)",s.rsi_14==null?"N/A":Number(s.rsi_14).toFixed(2)),
+    card("Market Cap",s.market_cap==null?"N/A":fmtCompact(s.market_cap)),
+    card("Trailing P/E",s.pe_trailing==null?"N/A":Number(s.pe_trailing).toFixed(2)),
+    card("Dividend Yield",s.dividend_yield_pct==null?"N/A":fmtPct(s.dividend_yield_pct)),
+    card("52-Week Range",`${fmtMoney(s.low_52w)} – ${fmtMoney(s.high_52w)}`),
+    card("Latest Volume",s.volume==null?"N/A":compact.format(s.volume)),
+    card("3-Month Avg. Volume",s.avg_volume_3m==null?"N/A":compact.format(s.avg_volume_3m))
+  ].join("");
+  drawChart(s.history||[]);
+}
+function drawChart(history){
+  const svg=$("stockChart");
+  svg.innerHTML="";
+  if(!history.length)return;
+  const values=history.map(x=>Number(x.close)).filter(Number.isFinite);
+  if(values.length<2)return;
+  const min=Math.min(...values),max=Math.max(...values),range=(max-min)||1;
+  const pts=values.map((v,i)=>{
+    const x=i/(values.length-1)*900;
+    const y=225-(v-min)/range*205;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  svg.innerHTML=`<polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="3" vector-effect="non-scaling-stroke"></polyline>
+    <text x="6" y="18" font-size="14">High ${fmtMoney(max)}</text>
+    <text x="6" y="235" font-size="14">Low ${fmtMoney(min)}</text>`;
+}
+function marketRows(items){
+  return (items||[]).map(x=>`<tr><td><strong>${x.name}</strong></td><td>${x.symbol}</td><td>${fmtNum(x.price)}</td><td class="${pctClass(x.change_1d_pct)}">${fmtPct(x.change_1d_pct)}</td><td class="${pctClass(x.change_1m_pct)}">${fmtPct(x.change_1m_pct)}</td></tr>`).join("");
+}
+function renderOverview(){
+  const positive=stocks.filter(s=>Number(s.change_1d_pct)>0).length;
+  const negative=stocks.filter(s=>Number(s.change_1d_pct)<0).length;
+  const avg=stocks.length?stocks.reduce((a,s)=>a+(Number(s.change_1d_pct)||0),0)/stocks.length:null;
+  const top=stocks.slice().sort((a,b)=>(b.change_1d_pct??-999)-(a.change_1d_pct??-999))[0];
+  const bottom=stocks.slice().sort((a,b)=>(a.change_1d_pct??999)-(b.change_1d_pct??999))[0];
+  $("overviewCards").innerHTML=[
+    card("Stocks Loaded",String(stocks.length)),
+    card("Advancing",String(positive)),
+    card("Declining",String(negative)),
+    card("Watchlist Average",fmtPct(avg)),
+    card("Largest Gain",top?`${top.ticker} ${fmtPct(top.change_1d_pct)}`:"N/A"),
+    card("Largest Decline",bottom?`${bottom.ticker} ${fmtPct(bottom.change_1d_pct)}`:"N/A")
+  ].join("");
+}
+function renderAll(){
+  const updated=DATA.updated_at_utc?new Date(DATA.updated_at_utc).toLocaleString():"Unknown";
+  $("dataStatus").textContent=`Source: ${DATA.source} • Updated: ${updated} • Development/authorized access`;
+  $("stockSelect").innerHTML=stocks.slice().sort((a,b)=>a.ticker.localeCompare(b.ticker)).map(s=>`<option value="${s.ticker}">${s.ticker} — ${s.name||s.ticker}</option>`).join("");
+  renderOverview();
+  renderStocks();
+  renderSelected();
+  $("indexBody").innerHTML=marketRows(DATA.indexes);
+  $("futureBody").innerHTML=marketRows(DATA.futures);
+  $("commodityBody").innerHTML=marketRows(DATA.commodities);
+}
+$("unlockButton").addEventListener("click",unlock);
+$("stockPassword").addEventListener("keydown",e=>{if(e.key==="Enter")unlock();});
+$("lockButton").addEventListener("click",lock);
+$("stockSearch").addEventListener("input",renderStocks);
+$("stockSort").addEventListener("change",renderStocks);
+$("stockSelect").addEventListener("change",renderSelected);
 })();
-</script></body></html>
+</script>
+</body>
+</html>

@@ -8,44 +8,16 @@ import requests
 
 OUTPUT = Path(__file__).with_name("stock-fundamentals.json")
 
-SEC_CIKS = {
-    "AAPL": 320193,
-    "MSFT": 789019,
-    "NVDA": 1045810,
-    "GOOGL": 1652044,
-    "AMZN": 1018724,
-    "META": 1326801,
-    "TSLA": 1318605,
-    "AVGO": 1730168,
-    "JPM": 19617,
-    "V": 1403161,
-    "MA": 1141391,
-    "WMT": 104169,
-    "LLY": 59478,
-    "JNJ": 200406,
-    "PG": 80424,
-    "KO": 21344,
-    "PEP": 77476,
-    "ORCL": 1341439,
-    "CSCO": 858877,
-    "AMD": 2488,
-    "INTC": 50863,
-    "QCOM": 804328,
-    "CAT": 18230,
-    "HON": 773840,
-    "UNP": 100885,
-    "RTX": 101829,
-    "LMT": 936468,
-    "ABBV": 1551152,
-    "MRK": 310158,
-    "PLTR": 1321655,
-}
-
-TICKERS = list(SEC_CIKS.keys())
+TICKERS = [
+    "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "AVGO",
+    "JPM", "V", "MA", "WMT", "LLY", "JNJ", "PG", "KO", "PEP", "ORCL",
+    "CSCO", "AMD", "INTC", "QCOM", "CAT", "HON", "UNP", "RTX", "LMT",
+    "ABBV", "MRK", "PLTR"
+]
 
 USER_AGENT = os.getenv(
     "SEC_USER_AGENT",
-    "PropertyInvestmentDigest/1.0 chambelon@aol.com https://tonyhernandezusa-code.github.io/property-investment-digest/"
+    "PropertyInvestmentDigest/1.0 https://tonyhernandezusa-code.github.io/property-investment-digest/"
 )
 HEADERS = {
     "User-Agent": USER_AGENT,
@@ -56,45 +28,10 @@ SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
 def get_json(url):
-    """
-    Fetch SEC JSON with short retry/backoff and immediate diagnostic logging.
-    This is intentionally fail-fast so GitHub Actions does not sit for many minutes
-    when a SEC endpoint is rejecting the runner.
-    """
-    last_error = None
-    delays = [1, 2, 4]
-    for attempt in range(len(delays) + 1):
-        try:
-            print(f"SEC GET {url} (attempt {attempt + 1}/{len(delays) + 1})", flush=True)
-            response = SESSION.get(url, timeout=20)
-            print(f"SEC response: {response.status_code} for {url}", flush=True)
-
-            if response.status_code in (403, 429, 500, 502, 503, 504):
-                last_error = requests.HTTPError(
-                    f"{response.status_code} response from {url}",
-                    response=response
-                )
-                if attempt < len(delays):
-                    wait = delays[attempt]
-                    print(f"Temporary SEC response. Retrying in {wait}s...", flush=True)
-                    time.sleep(wait)
-                    continue
-
-            response.raise_for_status()
-            time.sleep(0.50)
-            return response.json()
-
-        except requests.RequestException as exc:
-            last_error = exc
-            print(f"SEC request error: {exc}", flush=True)
-            if attempt < len(delays):
-                wait = delays[attempt]
-                print(f"Retrying in {wait}s...", flush=True)
-                time.sleep(wait)
-                continue
-            break
-
-    raise last_error
+    response = SESSION.get(url, timeout=30)
+    response.raise_for_status()
+    time.sleep(0.25)
+    return response.json()
 
 def pct_change(current, previous):
     if current is None or previous in (None, 0):
@@ -291,26 +228,25 @@ def company_record(ticker, cik):
     }
 
 def main():
-    # CIKs are embedded for the curated list so the updater can go directly to
-    # data.sec.gov. This avoids the separate www.sec.gov company_tickers.json
-    # lookup that some GitHub-hosted runners receive a 403 Forbidden response from.
+    tickers_raw = get_json("https://www.sec.gov/files/company_tickers.json")
+    ticker_map = {}
+    for item in tickers_raw.values():
+        ticker = str(item.get("ticker", "")).upper()
+        if ticker:
+            ticker_map[ticker] = int(item["cik_str"])
+
     companies, errors = [], []
     for ticker in TICKERS:
-        cik = SEC_CIKS[ticker]
-        print(f"\n=== {ticker} | CIK {cik} ===", flush=True)
+        cik = ticker_map.get(ticker)
+        if cik is None:
+            errors.append({"ticker": ticker, "error": "Ticker not found in SEC company_tickers.json"})
+            continue
         try:
             companies.append(company_record(ticker, cik))
-            print("Updated", ticker, flush=True)
+            print("Updated", ticker)
         except Exception as exc:
             errors.append({"ticker": ticker, "error": str(exc)})
-            print("Could not update", ticker, "-", exc, flush=True)
-
-            # If the first two companies both fail, the problem is likely connectivity/
-            # blocking rather than issuer-specific XBRL tagging. Stop quickly so the
-            # GitHub Action produces a useful log instead of running for many minutes.
-            if len(companies) == 0 and len(errors) >= 2:
-                print("Stopping early after two consecutive company failures.", flush=True)
-                break
+            print("Could not update", ticker, "-", exc)
 
     payload = {
         "updated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -329,7 +265,7 @@ def main():
         ]
     }
     OUTPUT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print("Wrote", OUTPUT, "with", len(companies), "companies and", len(errors), "errors.", flush=True)
+    print("Wrote", OUTPUT, "with", len(companies), "companies and", len(errors), "errors.")
 
 if __name__ == "__main__":
     main()

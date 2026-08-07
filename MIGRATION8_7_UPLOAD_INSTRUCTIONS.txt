@@ -1,0 +1,68 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.7
+AUTHORIZED YAHOO STOCKS & MARKETS
+
+IMPORTANT
+Do NOT tell anyone the password you choose.
+Do NOT send the password to ChatGPT.
+You will enter it privately into GitHub as a repository secret.
+
+PART A — CREATE THE PRIVATE PASSWORD SECRET
+
+1. Open the property-investment-digest GitHub repository.
+2. Click Settings.
+3. On the left, click Secrets and variables.
+4. Click Actions.
+5. Click New repository secret.
+6. Name:
+   STOCK_ACCESS_PASSWORD
+7. In Secret, create a private password that you will remember.
+8. Click Add secret.
+
+PART B — UPLOAD THE ROOT FILES
+
+From the extracted Migration 8.7 folder, upload these files to the ROOT of the repository:
+- stocks.html
+- styles.css
+- index.html
+- sources.html
+- methodology.html
+- disclaimer.html
+- update_authorized_stocks.py
+- authorized-stocks.enc.json
+
+Commit message:
+Add authorized Yahoo stock dashboard
+
+PART C — REPLACE THE WORKFLOW
+
+1. Open .github
+2. Open workflows
+3. Upload and replace:
+   update-stock-fundamentals.yml
+4. Commit message:
+   Switch stock updater to authorized Yahoo data
+
+The old SEC updater will no longer run on the schedule because this workflow file replaces it.
+
+PART D — RUN IT ONCE
+
+1. Click Actions.
+2. Click Update Authorized Stocks.
+3. Click Run workflow.
+4. Branch: main.
+5. Click the green Run workflow button.
+6. Wait for the green check mark.
+
+PART E — OPEN THE DASHBOARD
+
+https://tonyhernandezusa-code.github.io/property-investment-digest/stocks.html
+
+Press Ctrl+F5.
+
+Enter the SAME password that you privately saved in the GitHub secret.
+
+The password is not stored in the webpage.
+The encrypted stock-data file is unreadable without the password.
+
+DEVELOPMENT/LICENSING NOTE
+This restriction is for development/testing. It does not grant commercial redistribution rights to Yahoo Finance/yfinance market data.
