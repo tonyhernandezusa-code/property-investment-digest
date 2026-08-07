@@ -8,12 +8,40 @@ import requests
 
 OUTPUT = Path(__file__).with_name("stock-fundamentals.json")
 
-TICKERS = [
-    "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "AVGO",
-    "JPM", "V", "MA", "WMT", "LLY", "JNJ", "PG", "KO", "PEP", "ORCL",
-    "CSCO", "AMD", "INTC", "QCOM", "CAT", "HON", "UNP", "RTX", "LMT",
-    "ABBV", "MRK", "PLTR"
-]
+SEC_CIKS = {
+    "AAPL": 320193,
+    "MSFT": 789019,
+    "NVDA": 1045810,
+    "GOOGL": 1652044,
+    "AMZN": 1018724,
+    "META": 1326801,
+    "TSLA": 1318605,
+    "AVGO": 1730168,
+    "JPM": 19617,
+    "V": 1403161,
+    "MA": 1141391,
+    "WMT": 104169,
+    "LLY": 59478,
+    "JNJ": 200406,
+    "PG": 80424,
+    "KO": 21344,
+    "PEP": 77476,
+    "ORCL": 1341439,
+    "CSCO": 858877,
+    "AMD": 2488,
+    "INTC": 50863,
+    "QCOM": 804328,
+    "CAT": 18230,
+    "HON": 773840,
+    "UNP": 100885,
+    "RTX": 101829,
+    "LMT": 936468,
+    "ABBV": 1551152,
+    "MRK": 310158,
+    "PLTR": 1321655,
+}
+
+TICKERS = list(SEC_CIKS.keys())
 
 USER_AGENT = os.getenv(
     "SEC_USER_AGENT",
@@ -28,10 +56,24 @@ SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
 def get_json(url):
-    response = SESSION.get(url, timeout=30)
-    response.raise_for_status()
-    time.sleep(0.25)
-    return response.json()
+    last_error = None
+    for attempt in range(6):
+        try:
+            response = SESSION.get(url, timeout=30)
+            if response.status_code in (403, 429, 500, 502, 503, 504):
+                last_error = requests.HTTPError(
+                    f"{response.status_code} response from {url}",
+                    response=response
+                )
+                time.sleep(min(30, 2 ** attempt))
+                continue
+            response.raise_for_status()
+            time.sleep(0.40)
+            return response.json()
+        except requests.RequestException as exc:
+            last_error = exc
+            time.sleep(min(30, 2 ** attempt))
+    raise last_error
 
 def pct_change(current, previous):
     if current is None or previous in (None, 0):
@@ -228,19 +270,12 @@ def company_record(ticker, cik):
     }
 
 def main():
-    tickers_raw = get_json("https://www.sec.gov/files/company_tickers.json")
-    ticker_map = {}
-    for item in tickers_raw.values():
-        ticker = str(item.get("ticker", "")).upper()
-        if ticker:
-            ticker_map[ticker] = int(item["cik_str"])
-
+    # CIKs are embedded for the curated list so the updater can go directly to
+    # data.sec.gov. This avoids the separate www.sec.gov company_tickers.json
+    # lookup that some GitHub-hosted runners receive a 403 Forbidden response from.
     companies, errors = [], []
     for ticker in TICKERS:
-        cik = ticker_map.get(ticker)
-        if cik is None:
-            errors.append({"ticker": ticker, "error": "Ticker not found in SEC company_tickers.json"})
-            continue
+        cik = SEC_CIKS[ticker]
         try:
             companies.append(company_record(ticker, cik))
             print("Updated", ticker)
