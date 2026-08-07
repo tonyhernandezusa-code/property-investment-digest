@@ -1,7 +1,7 @@
 {
-  "updated_at_utc": "2026-08-06T10:10:14+00:00",
+  "updated_at_utc": "2026-08-07T00:04:41+00:00",
   "status": "partial success",
-  "message": "CENSUS: success; BLS: success; FHFA: success; HUD: error; FEMA: error",
+  "message": "CENSUS: success; BLS: success; FHFA: success; HUD: error; FEMA: error; HOTEL_CBP: success",
   "sources": {
     "census": {
       "status": "success",
@@ -26,6 +26,12 @@
     "fema": {
       "status": "error",
       "message": "HTTP Error 404: Not Found"
+    },
+    "hotel_cbp": {
+      "status": "success",
+      "message": "51 state and 2280 county records",
+      "current_year": 2023,
+      "comparison_year": 2019
     }
   },
   "records_written": 51,

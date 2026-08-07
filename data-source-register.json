@@ -1,6 +1,6 @@
 {
   "register_version": 3,
-  "last_reviewed_utc": "2026-08-06T10:10:14+00:00",
+  "last_reviewed_utc": "2026-08-07T00:04:41+00:00",
   "sources": [
     {
       "source_id": "census_acs_5year",
@@ -54,6 +54,20 @@
       "official_dataset_page": "https://www.fema.gov/about/openfema/disaster-declarations-summaries",
       "official_api": "https://www.fema.gov/api/open/v1/DisasterDeclarationsSummaries",
       "interpretation_note": "Declaration history is not a parcel-level hazard, flood zone, insurance, or future-loss determination."
+    },
+    {
+      "source_id": "census_cbp_hotels",
+      "source_name": "U.S. Census Bureau \u2014 County Business Patterns, Hotels (except Casino Hotels) and Motels",
+      "status": "success",
+      "cost": "Free Census Data API",
+      "data_used": "Hotel/motel establishments, employment, and annual payroll for the United States, states, and counties.",
+      "naics": "721110",
+      "current_year": 2023,
+      "comparison_year": 2019,
+      "attribution": "Source: U.S. Census Bureau, County Business Patterns, NAICS 721110 \u2014 Hotels (except Casino Hotels) and Motels.",
+      "required_notice": "This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.",
+      "official_dataset_page": "https://www.census.gov/data/developers/data-sets/cbp-zbp/cbp-api.html",
+      "interpretation_note": "CBP is a business and employment dataset. It does not provide hotel occupancy, ADR, RevPAR, room inventory, or property-level operating results."
     },
     {
       "source_id": "commercial_vendor",
