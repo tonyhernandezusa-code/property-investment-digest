@@ -1,0 +1,38 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.3 BUYER BROKERAGE / COMMISSION
+
+UPLOAD
+1. Download and unzip property-investment-digest-migration8-3-buyer-brokerage.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the extracted Migration 8.3 folder.
+5. Drag the files into GitHub.
+6. Commit message:
+   Add buyer brokerage cash to close
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+
+NO GOVERNMENT DATA UPDATE IS REQUIRED.
+
+TEST
+Open:
+https://tonyhernandezusa-code.github.io/property-investment-digest/calculator.html
+
+Example:
+- Purchase price: $500,000
+- Down payment: 20%
+- Closing and initial costs: 3%
+- Buyer-broker method: Percentage
+- Agreed buyer-broker compensation: 2.5
+- Seller/listing side pays toward buyer brokerage: $7,500
+- Seller credit toward other closing costs: $5,000
+
+Expected:
+- Total buyer-broker compensation: $12,500
+- Seller-paid buyer brokerage: $7,500
+- Buyer-paid brokerage: $5,000
+- Gross other closing costs: $15,000
+- Net other closing costs: $10,000
+- Down payment: $100,000
+- Estimated cash to close / cash invested: $115,000
+
+The calculator does not automatically finance the $5,000 buyer-paid brokerage.

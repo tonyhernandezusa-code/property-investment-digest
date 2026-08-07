@@ -97,6 +97,34 @@
           </div>
         </div>
 
+        <div class="subsection">
+          <h3>Buyer Brokerage &amp; Seller Credits (Optional)</h3>
+          <p class="metric-note">Brokerage compensation is negotiable and payment arrangements vary by transaction. Enter only the amounts that apply to the transaction being analyzed.</p>
+          <div class="field-grid">
+            <div>
+              <label for="buyerBrokerMethod">Buyer-broker compensation method</label>
+              <select id="buyerBrokerMethod">
+                <option value="percent">Percentage of purchase price</option>
+                <option value="flat">Flat dollar amount</option>
+              </select>
+            </div>
+            <div>
+              <label for="buyerBrokerAmount">Agreed buyer-broker compensation</label>
+              <input id="buyerBrokerAmount" type="number" min="0" step="0.01" value="0">
+              <span class="field-help" id="buyerBrokerAmountHelp">Enter percentage, such as 2.5 for 2.5%.</span>
+            </div>
+            <div>
+              <label for="sellerPaidBuyerBroker">Seller/listing side pays toward buyer brokerage ($)</label>
+              <input id="sellerPaidBuyerBroker" type="number" min="0" step="100" value="0">
+            </div>
+            <div>
+              <label for="sellerClosingCredit">Seller concession / credit toward other closing costs ($)</label>
+              <input id="sellerClosingCredit" type="number" min="0" step="100" value="0">
+            </div>
+          </div>
+          <p class="field-help"><strong>Financing treatment:</strong> this calculator treats any buyer-paid brokerage amount as cash required at closing. It does not assume the lender will add that amount to the mortgage. Seller concessions, credits, appraisal limits, loan-to-value limits, and eligible closing costs vary by loan program and transaction.</p>
+        </div>
+
         <div class="subsection arm-settings" id="armSettings" hidden>
           <h3>Adjustable / Floating Rate Assumptions</h3>
           <p class="metric-note">This is a stress-test model. The site does not predict future SOFR, Prime, Treasury, or other index rates.</p>
@@ -203,7 +231,12 @@
       <div class="result"><div class="label">DSCR</div><div class="value" id="dscr">0.00</div></div>
       <div class="result"><div class="label">Annual cash flow</div><div class="value" id="annualCashFlow">$0</div></div>
       <div class="result"><div class="label">Monthly cash flow</div><div class="value" id="monthlyCashFlow">$0</div></div>
-      <div class="result"><div class="label">Cash invested</div><div class="value" id="cashInvested">$0</div></div>
+      <div class="result"><div class="label">Buyer-broker compensation</div><div class="value" id="buyerBrokerComp">$0</div></div>
+      <div class="result"><div class="label">Seller-paid buyer brokerage</div><div class="value" id="sellerPaidBrokerage">$0</div></div>
+      <div class="result"><div class="label">Buyer-paid brokerage at closing</div><div class="value" id="buyerPaidBrokerage">$0</div></div>
+      <div class="result"><div class="label">Seller credit toward other closing costs</div><div class="value" id="sellerCreditResult">$0</div></div>
+      <div class="result"><div class="label">Net other closing costs</div><div class="value" id="netClosingCosts">$0</div></div>
+      <div class="result"><div class="label">Estimated cash to close / cash invested</div><div class="value" id="cashInvested">$0</div></div>
       <div class="result"><div class="label">Cash-on-cash return</div><div class="value" id="cashOnCash">0.00%</div></div>
       <div class="result"><div class="label">Break-even occupancy</div><div class="value" id="breakEven">0.00%</div></div>
       <div class="result"><div class="label">Loan-to-value</div><div class="value" id="ltv">0.00%</div></div>
@@ -451,6 +484,10 @@
       purchasePrice: num("purchasePrice"),
       downPaymentPct: num("downPaymentPct"),
       closingCostsPct: num("closingCostsPct"),
+      buyerBrokerMethod: $("buyerBrokerMethod").value,
+      buyerBrokerAmount: num("buyerBrokerAmount"),
+      sellerPaidBuyerBroker: num("sellerPaidBuyerBroker"),
+      sellerClosingCredit: num("sellerClosingCredit"),
       loanType: $("loanType").value,
       interestRate: num("interestRate"),
       amortYears: num("amortYears"),
@@ -500,7 +537,28 @@
     const downPayment = inputs.purchasePrice * inputs.downPaymentPct / 100;
     const loanAmount = Math.max(0, inputs.purchasePrice - downPayment);
     const closingCosts = inputs.purchasePrice * inputs.closingCostsPct / 100;
-    const cashInvested = downPayment + closingCosts;
+
+    const buyerBrokerCompensation = inputs.buyerBrokerMethod === "flat"
+      ? inputs.buyerBrokerAmount
+      : inputs.purchasePrice * inputs.buyerBrokerAmount / 100;
+    const sellerPaidBuyerBroker = Math.min(
+      Math.max(0, inputs.sellerPaidBuyerBroker),
+      Math.max(0, buyerBrokerCompensation)
+    );
+    const buyerPaidBrokerage = Math.max(
+      0,
+      buyerBrokerCompensation - sellerPaidBuyerBroker
+    );
+
+    const sellerClosingCredit = Math.min(
+      Math.max(0, inputs.sellerClosingCredit),
+      Math.max(0, closingCosts)
+    );
+    const netClosingCosts = Math.max(0, closingCosts - sellerClosingCredit);
+
+    // Buyer-paid brokerage is intentionally treated as cash at closing.
+    // The model does not assume it can be added to the mortgage balance.
+    const cashInvested = downPayment + netClosingCosts + buyerPaidBrokerage;
     const schedule = buildSchedule(loanAmount, inputs);
     const first12 = schedule.slice(0, 12);
     const annualDebtService = first12.reduce((sum, row) => sum + row.payment, 0);
@@ -523,6 +581,11 @@
       downPayment,
       loanAmount,
       closingCosts,
+      buyerBrokerCompensation,
+      sellerPaidBuyerBroker,
+      buyerPaidBrokerage,
+      sellerClosingCredit,
+      netClosingCosts,
       cashInvested,
       schedule,
       annualDebtService,
@@ -560,6 +623,11 @@
     $("dscr").textContent = decimal(metrics.dscr);
     $("annualCashFlow").textContent = money(metrics.annualCashFlow);
     $("monthlyCashFlow").textContent = money(metrics.monthlyCashFlow);
+    $("buyerBrokerComp").textContent = money(metrics.buyerBrokerCompensation);
+    $("sellerPaidBrokerage").textContent = money(metrics.sellerPaidBuyerBroker);
+    $("buyerPaidBrokerage").textContent = money(metrics.buyerPaidBrokerage);
+    $("sellerCreditResult").textContent = money(metrics.sellerClosingCredit);
+    $("netClosingCosts").textContent = money(metrics.netClosingCosts);
     $("cashInvested").textContent = money(metrics.cashInvested);
     $("cashOnCash").textContent = pct(metrics.cashOnCash);
     $("breakEven").textContent = pct(metrics.breakEven);
@@ -727,8 +795,15 @@
     $("armSettings").hidden = $("loanType").value !== "arm";
   }
 
+  function updateBrokerageHelp() {
+    $("buyerBrokerAmountHelp").textContent = $("buyerBrokerMethod").value === "flat"
+      ? "Enter the agreed flat dollar amount."
+      : "Enter percentage, such as 2.5 for 2.5%.";
+  }
+
   function calculateAll() {
     updateArmVisibility();
+    updateBrokerageHelp();
     const inputs = propertyInputs();
     const metrics = calculateMetrics(inputs);
     displayMetrics(inputs, metrics);
@@ -741,6 +816,7 @@
   function restoreInputs(data) {
     const ids = [
       "propertyName", "propertyType", "purchasePrice", "downPaymentPct", "closingCostsPct",
+      "buyerBrokerMethod", "buyerBrokerAmount", "sellerPaidBuyerBroker", "sellerClosingCredit",
       "loanType", "interestRate", "amortYears", "loanTermYears", "interestOnlyMonths",
       "armIndexName", "armFixedYears", "armIndexRate", "armMargin", "armAdjustmentMonths",
       "armIndexAnnualChange", "armFloor", "armCap", "otherAnnualIncome",
@@ -764,6 +840,10 @@
       purchasePrice: 1000000,
       downPaymentPct: 25,
       closingCostsPct: 3,
+      buyerBrokerMethod: "percent",
+      buyerBrokerAmount: 0,
+      sellerPaidBuyerBroker: 0,
+      sellerClosingCredit: 0,
       loanType: "fixed",
       interestRate: 6.5,
       amortYears: 25,
