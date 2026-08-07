@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hotel Market Research | Property Investment Digest</title>
+  <meta name="description" content="Free hotel and motel establishment, employment, and payroll research from U.S. Census County Business Patterns.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="hotel-market.html">Hotel Market</a><a href="hotel-analysis.html">Hotel Analysis</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+  </div>
+
+  <section class="hero">
+    <h1>Hotel Market Research</h1>
+    <p>Free national, state, and county hotel-industry business statistics from U.S. Census County Business Patterns.</p>
+    <span class="source-chip">Census CBP</span>
+    <span class="source-chip">NAICS 721110</span>
+    <span class="source-chip">National + State + County</span>
+  </section>
+
+  <div class="notice" id="statusNotice"><strong>Data status:</strong> Loading hotel market data.</div>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> County Business Patterns counts establishments, employees, and payroll. It does not report rooms, occupancy, ADR, RevPAR, hotel sale prices, or the operating results of an individual hotel.
+  </div>
+
+  <section class="card">
+    <h2>National Hotel/Motel Industry</h2>
+    <div class="market-profile" id="nationalCards"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <div class="market-controls">
+      <div>
+        <label for="stateSelect">State</label>
+        <select id="stateSelect"></select>
+      </div>
+      <div>
+        <label for="compareSelect">Compare with</label>
+        <select id="compareSelect"></select>
+      </div>
+      <div>
+        <label for="rankMetric">State ranking</label>
+        <select id="rankMetric">
+          <option value="establishments">Hotel/motel establishments</option>
+          <option value="employment">Hotel/motel employment</option>
+          <option value="establishments_change_pct">Establishment growth</option>
+          <option value="employment_change_pct">Employment growth</option>
+          <option value="payroll_per_employee">Payroll per employee</option>
+        </select>
+      </div>
+    </div>
+
+    <h2 id="stateTitle">State Hotel Industry Profile</h2>
+    <div class="market-profile" id="stateCards"></div>
+
+    <h3 style="margin-top:22px;">State comparison</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Measurement</th><th id="leftHeading">State A</th><th id="rightHeading">State B</th></tr></thead>
+        <tbody id="comparisonBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2 id="countyTitle">County Hotel Industry Lookup</h2>
+    <div class="market-controls">
+      <div>
+        <label for="countySearch">Search county</label>
+        <input id="countySearch" type="search" placeholder="Example: Miami-Dade">
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="market-table">
+        <thead>
+          <tr>
+            <th>County</th><th>Establishments</th><th>Employment</th>
+            <th>Annual Payroll</th><th>Employees / Establishment</th>
+            <th>Payroll / Employee</th><th>Employment Change</th>
+          </tr>
+        </thead>
+        <tbody id="countyBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2 id="rankingTitle">State Ranking</h2>
+    <div class="table-wrap">
+      <table class="market-table">
+        <thead><tr><th>Rank</th><th>State</th><th>Measurement</th></tr></thead>
+        <tbody id="rankingBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>What is not included in this free government dataset?</h2>
+    <p>Market occupancy, ADR, RevPAR, room inventory, individual hotel revenue, property sale prices, and hotel forecasts are not supplied by County Business Patterns.</p>
+    <p>Those operating measures can be entered manually in the <a href="hotel-analysis.html">Hotel Investment Analysis</a> calculator. Commercial market data can be added later only after publication and subscriber-use rights are confirmed in writing.</p>
+  </section>
+</main>
+
+<footer>
+  <strong>Educational research only.</strong> This product uses the Census Bureau Data API but is not endorsed or certified by the Census Bureau.
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const integer = new Intl.NumberFormat("en-US", {maximumFractionDigits: 0});
+  const money0 = new Intl.NumberFormat("en-US", {style:"currency",currency:"USD",maximumFractionDigits:0});
+  let hotel = null, states = [], counties = [];
+
+  function ok(v){ return v !== null && v !== undefined && Number.isFinite(Number(v)); }
+  function n(v){ return ok(v) ? integer.format(Number(v)) : "N/A"; }
+  function money(v){ return ok(v) ? money0.format(Number(v)) : "N/A"; }
+  function pct(v){ return ok(v) ? (Number(v)>=0?"+":"") + Number(v).toFixed(2)+"%" : "N/A"; }
+  function card(label,value,note=""){ return `<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`; }
+  function stateByFips(fips){ return states.find(s=>s.state_fips===fips); }
+
+  function renderNational(){
+    const d = hotel.national || {};
+    $("nationalCards").innerHTML = [
+      card("Establishments", n(d.establishments), "Current CBP year " + hotel.current_year),
+      card("Employment", n(d.employment)),
+      card("Annual payroll", money(d.annual_payroll)),
+      card("Employees / establishment", ok(d.employees_per_establishment)?Number(d.employees_per_establishment).toFixed(2):"N/A"),
+      card("Payroll / employee", money(d.payroll_per_employee)),
+      card("Establishment change", pct(d.establishments_change_pct), hotel.comparison_year + " to " + hotel.current_year),
+      card("Employment change", pct(d.employment_change_pct), hotel.comparison_year + " to " + hotel.current_year),
+      card("Payroll change", pct(d.payroll_change_pct), hotel.comparison_year + " to " + hotel.current_year)
+    ].join("");
+  }
+
+  function fillSelect(el, selected){
+    el.innerHTML = states.slice().sort((a,b)=>a.name.localeCompare(b.name))
+      .map(s=>`<option value="${s.state_fips}" ${s.state_fips===selected?"selected":""}>${s.name}</option>`).join("");
+  }
+
+  function renderState(){
+    const d = stateByFips($("stateSelect").value);
+    if(!d) return;
+    $("stateTitle").textContent = d.name + " Hotel/Motel Industry";
+    $("stateCards").innerHTML = [
+      card("Establishments", n(d.establishments)),
+      card("Employment", n(d.employment)),
+      card("Annual payroll", money(d.annual_payroll)),
+      card("Employees / establishment", ok(d.employees_per_establishment)?Number(d.employees_per_establishment).toFixed(2):"N/A"),
+      card("Payroll / employee", money(d.payroll_per_employee)),
+      card("Establishment change", pct(d.establishments_change_pct), hotel.comparison_year+"–"+hotel.current_year),
+      card("Employment change", pct(d.employment_change_pct), hotel.comparison_year+"–"+hotel.current_year),
+      card("Payroll change", pct(d.payroll_change_pct), hotel.comparison_year+"–"+hotel.current_year)
+    ].join("");
+    renderComparison();
+    renderCounties();
+    renderRanking();
+  }
+
+  function renderComparison(){
+    const a = stateByFips($("stateSelect").value), b = stateByFips($("compareSelect").value);
+    if(!a || !b) return;
+    $("leftHeading").textContent=a.name; $("rightHeading").textContent=b.name;
+    const rows=[
+      ["Establishments","establishments","n"],["Employment","employment","n"],
+      ["Annual payroll","annual_payroll","money"],["Employees / establishment","employees_per_establishment","decimal"],
+      ["Payroll / employee","payroll_per_employee","money"],["Establishment change","establishments_change_pct","pct"],
+      ["Employment change","employment_change_pct","pct"],["Payroll change","payroll_change_pct","pct"]
+    ];
+    const fmt=(v,t)=>t==="money"?money(v):t==="pct"?pct(v):t==="decimal"?(ok(v)?Number(v).toFixed(2):"N/A"):n(v);
+    $("comparisonBody").innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${fmt(a[r[1]],r[2])}</td><td>${fmt(b[r[1]],r[2])}</td></tr>`).join("");
+  }
+
+  function renderCounties(){
+    const fips=$("stateSelect").value, query=$("countySearch").value.trim().toLowerCase();
+    const rows=counties.filter(c=>c.state_fips===fips)
+      .filter(c=>!query || (c.name||"").toLowerCase().includes(query))
+      .sort((a,b)=>(b.employment||-1)-(a.employment||-1))
+      .slice(0,250);
+    const state=stateByFips(fips);
+    $("countyTitle").textContent=(state?state.name:"State")+" County Hotel Industry Lookup";
+    $("countyBody").innerHTML=rows.length?rows.map(c=>`<tr>
+      <td>${c.name||"N/A"}</td><td>${n(c.establishments)}</td><td>${n(c.employment)}</td>
+      <td>${money(c.annual_payroll)}</td><td>${ok(c.employees_per_establishment)?Number(c.employees_per_establishment).toFixed(2):"N/A"}</td>
+      <td>${money(c.payroll_per_employee)}</td><td>${pct(c.employment_change_pct)}</td>
+    </tr>`).join(""):'<tr><td colspan="7">No county records available for this selection.</td></tr>';
+  }
+
+  function renderRanking(){
+    const metric=$("rankMetric").value;
+    const labels={
+      establishments:"Hotel/motel establishments", employment:"Hotel/motel employment",
+      establishments_change_pct:"Establishment growth", employment_change_pct:"Employment growth",
+      payroll_per_employee:"Payroll per employee"
+    };
+    const ranked=states.filter(s=>ok(s[metric])).slice().sort((a,b)=>Number(b[metric])-Number(a[metric]));
+    const fmt=metric.includes("change")?pct:(metric==="payroll_per_employee"?money:n);
+    $("rankingTitle").textContent=labels[metric]+" — State Ranking";
+    $("rankingBody").innerHTML=ranked.map((s,i)=>`<tr class="${s.state_fips===$("stateSelect").value?"market-highlight":""}">
+      <td><span class="market-rank">${i+1}</span></td><td>${s.name}</td><td>${fmt(s[metric])}</td>
+    </tr>`).join("");
+  }
+
+  fetch("census_state_data.json",{cache:"no-store"}).then(r=>r.json()).then(data=>{
+    hotel=data.hotel_cbp;
+    if(!hotel || !Array.isArray(hotel.states) || !hotel.states.length) throw new Error("Hotel CBP data not populated.");
+    states=hotel.states; counties=Array.isArray(hotel.counties)?hotel.counties:[];
+    const first=states.some(s=>s.state_fips==="12")?"12":states[0].state_fips;
+    const compare=states.some(s=>s.state_fips==="48")?"48":states[Math.min(1,states.length-1)].state_fips;
+    fillSelect($("stateSelect"),first); fillSelect($("compareSelect"),compare);
+    const status=data.source_status && data.source_status.hotel_cbp ? data.source_status.hotel_cbp.status : "success";
+    $("statusNotice").innerHTML=`<strong>Data status:</strong> ${status}. Current CBP year: ${hotel.current_year}. Comparison year: ${hotel.comparison_year}.`;
+    renderNational(); renderState();
+  }).catch(err=>{
+    $("statusNotice").innerHTML="<strong>Data status:</strong> Hotel CBP data is awaiting the Migration 8 government-data update.";
+    $("nationalCards").innerHTML=card("Next action","Run Update Government Data","The page will populate automatically after a successful update.");
+    console.error(err);
+  });
+
+  $("stateSelect").addEventListener("change",renderState);
+  $("compareSelect").addEventListener("change",renderComparison);
+  $("countySearch").addEventListener("input",renderCounties);
+  $("rankMetric").addEventListener("change",renderRanking);
+
+  const learningButton=$("learningToggle");
+  function setLearning(on){document.body.classList.toggle("learning-on",on);learningButton.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off");}
+  learningButton.addEventListener("click",()=>setLearning(!document.body.classList.contains("learning-on")));
+  setLearning(localStorage.getItem("pid_learning_mode")==="on");
+})();
+</script>
+</body>
+</html>

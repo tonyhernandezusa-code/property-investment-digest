@@ -106,6 +106,14 @@ FEMA_ATTRIBUTION = (
     "OpenFEMA Disaster Declarations Summaries."
 )
 
+HOTEL_CBP_CURRENT_YEAR = 2023
+HOTEL_CBP_COMPARISON_YEAR = 2019
+HOTEL_NAICS = "721110"
+HOTEL_CBP_ATTRIBUTION = (
+    "Source: U.S. Census Bureau, County Business Patterns, "
+    "NAICS 721110 — Hotels (except Casino Hotels) and Motels."
+)
+
 
 def valid_number(value: Any) -> int | None:
     try:
@@ -820,6 +828,179 @@ def build_fema_records(
     return summaries, recent
 
 
+
+# ---------------- Census County Business Patterns: Hotels ----------------
+
+def cbp_url(year: int, geography: str, api_key: str) -> str:
+    params = {
+        "get": "NAME,ESTAB,EMP,PAYANN",
+        "for": geography,
+        "NAICS2017": HOTEL_NAICS,
+        "LFO": "001",
+        "EMPSZES": "001",
+        "key": api_key,
+    }
+    if geography == "county:*":
+        params["in"] = "state:*"
+    return (
+        f"https://api.census.gov/data/{year}/cbp?"
+        f"{urllib.parse.urlencode(params)}"
+    )
+
+
+def load_cbp_rows(year: int, api_key: str, fixture_env: str) -> dict[str, list[dict[str, str]]]:
+    fixture = os.environ.get(fixture_env, "").strip()
+    if fixture:
+        payload = json.loads(Path(fixture).read_text(encoding="utf-8"))
+        if not isinstance(payload, dict):
+            raise RuntimeError("Hotel CBP fixture must contain us, states, and counties arrays.")
+        return payload
+
+    result: dict[str, list[dict[str, str]]] = {}
+    for key, geography in (
+        ("us", "us:*"),
+        ("states", "state:*"),
+        ("counties", "county:*"),
+    ):
+        payload = read_json_url(cbp_url(year, geography, api_key))
+        if not isinstance(payload, list) or len(payload) < 2:
+            raise RuntimeError(f"Unexpected CBP {year} response for {key}.")
+        headers = payload[0]
+        result[key] = [dict(zip(headers, row)) for row in payload[1:]]
+    return result
+
+
+def cbp_int(value: Any) -> int | None:
+    try:
+        number = int(float(value))
+    except (TypeError, ValueError):
+        return None
+    return number if number >= 0 else None
+
+
+def cbp_metrics(row: dict[str, Any] | None) -> dict[str, Any]:
+    row = row or {}
+    establishments = cbp_int(row.get("ESTAB"))
+    employment = cbp_int(row.get("EMP"))
+    payroll_thousands = cbp_int(row.get("PAYANN"))
+    payroll_dollars = (
+        payroll_thousands * 1000
+        if payroll_thousands is not None
+        else None
+    )
+    return {
+        "establishments": establishments,
+        "employment": employment,
+        "annual_payroll": payroll_dollars,
+        "employees_per_establishment": ratio(employment, establishments),
+        "payroll_per_employee": ratio(payroll_dollars, employment),
+    }
+
+
+def cbp_change(current: int | float | None, prior: int | float | None) -> float | None:
+    return pct_change(current, prior)
+
+
+def build_hotel_cbp(
+    current_payload: dict[str, list[dict[str, str]]],
+    prior_payload: dict[str, list[dict[str, str]]],
+) -> dict[str, Any]:
+
+    def keyed(rows: list[dict[str, str]], geography: str) -> dict[str, dict[str, str]]:
+        result: dict[str, dict[str, str]] = {}
+        for row in rows:
+            if geography == "us":
+                key = "US"
+            elif geography == "state":
+                key = str(row.get("state") or "").zfill(2)
+            else:
+                state = str(row.get("state") or "").zfill(2)
+                county = str(row.get("county") or "").zfill(3)
+                key = state + county
+            result[key] = row
+        return result
+
+    current_us = keyed(current_payload.get("us", []), "us")
+    prior_us = keyed(prior_payload.get("us", []), "us")
+    current_states = keyed(current_payload.get("states", []), "state")
+    prior_states = keyed(prior_payload.get("states", []), "state")
+    current_counties = keyed(current_payload.get("counties", []), "county")
+    prior_counties = keyed(prior_payload.get("counties", []), "county")
+
+    def combine(current_row, prior_row, *, fips=None, state_fips=None):
+        current = cbp_metrics(current_row)
+        prior = cbp_metrics(prior_row)
+        record = {
+            "name": (current_row or prior_row or {}).get("NAME", ""),
+            "fips": fips,
+            "state_fips": state_fips,
+            **current,
+            "establishments_change_pct": cbp_change(
+                current["establishments"], prior["establishments"]
+            ),
+            "employment_change_pct": cbp_change(
+                current["employment"], prior["employment"]
+            ),
+            "payroll_change_pct": cbp_change(
+                current["annual_payroll"], prior["annual_payroll"]
+            ),
+            "comparison_establishments": prior["establishments"],
+            "comparison_employment": prior["employment"],
+            "comparison_annual_payroll": prior["annual_payroll"],
+        }
+        return record
+
+    national = combine(
+        current_us.get("US"),
+        prior_us.get("US"),
+        fips="US",
+    )
+
+    states = []
+    for fips in sorted(set(current_states) | set(prior_states)):
+        if fips not in STATE_FIPS:
+            continue
+        record = combine(
+            current_states.get(fips),
+            prior_states.get(fips),
+            fips=fips,
+            state_fips=fips,
+        )
+        record["abbr"] = STATE_FIPS[fips][0]
+        record["name"] = STATE_FIPS[fips][1]
+        states.append(record)
+
+    counties = []
+    for county_fips in sorted(set(current_counties) | set(prior_counties)):
+        state_fips = county_fips[:2]
+        if state_fips not in STATE_FIPS:
+            continue
+        record = combine(
+            current_counties.get(county_fips),
+            prior_counties.get(county_fips),
+            fips=county_fips,
+            state_fips=state_fips,
+        )
+        record["state_abbr"] = STATE_FIPS[state_fips][0]
+        record["state_name"] = STATE_FIPS[state_fips][1]
+        counties.append(record)
+
+    return {
+        "naics": HOTEL_NAICS,
+        "industry": "Hotels (except Casino Hotels) and Motels",
+        "current_year": HOTEL_CBP_CURRENT_YEAR,
+        "comparison_year": HOTEL_CBP_COMPARISON_YEAR,
+        "national": national,
+        "states": states,
+        "counties": counties,
+        "interpretation": (
+            "County Business Patterns measures establishments, employment, "
+            "and payroll. It does not report hotel room counts, occupancy, "
+            "ADR, RevPAR, property values, or individual hotel performance."
+        ),
+    }
+
+
 # ---------------- Merge and outputs ----------------
 
 def source_register(now: str, statuses: dict[str, Any]) -> dict[str, Any]:
@@ -928,6 +1109,33 @@ def source_register(now: str, statuses: dict[str, Any]) -> dict[str, Any]:
                 ),
             },
             {
+                "source_id": "census_cbp_hotels",
+                "source_name": (
+                    "U.S. Census Bureau — County Business Patterns, "
+                    "Hotels (except Casino Hotels) and Motels"
+                ),
+                "status": statuses["hotel_cbp"]["status"],
+                "cost": "Free Census Data API",
+                "data_used": (
+                    "Hotel/motel establishments, employment, and annual payroll "
+                    "for the United States, states, and counties."
+                ),
+                "naics": HOTEL_NAICS,
+                "current_year": HOTEL_CBP_CURRENT_YEAR,
+                "comparison_year": HOTEL_CBP_COMPARISON_YEAR,
+                "attribution": HOTEL_CBP_ATTRIBUTION,
+                "required_notice": CENSUS_NOTICE,
+                "official_dataset_page": (
+                    "https://www.census.gov/data/developers/"
+                    "data-sets/cbp-zbp/cbp-api.html"
+                ),
+                "interpretation_note": (
+                    "CBP is a business and employment dataset. It does not "
+                    "provide hotel occupancy, ADR, RevPAR, room inventory, or "
+                    "property-level operating results."
+                ),
+            },
+            {
                 "source_id": "commercial_vendor",
                 "source_name": "Commercial property-data vendor",
                 "status": "not selected",
@@ -958,6 +1166,7 @@ def main() -> int:
         "fhfa": {"status": "not attempted", "message": ""},
         "hud": {"status": "not attempted", "message": ""},
         "fema": {"status": "not attempted", "message": ""},
+        "hotel_cbp": {"status": "not attempted", "message": ""},
     }
 
     records: list[dict[str, Any]] = []
@@ -1059,6 +1268,44 @@ def main() -> int:
         fema_recent = {}
         statuses["fema"] = {"status": "error", "message": str(exc)}
 
+    try:
+        hotel_cbp = build_hotel_cbp(
+            load_cbp_rows(
+                HOTEL_CBP_CURRENT_YEAR,
+                census_key,
+                "HOTEL_CBP_FIXTURE_CURRENT",
+            ),
+            load_cbp_rows(
+                HOTEL_CBP_COMPARISON_YEAR,
+                census_key,
+                "HOTEL_CBP_FIXTURE_COMPARISON",
+            ),
+        )
+        statuses["hotel_cbp"] = {
+            "status": "success",
+            "message": (
+                f"{len(hotel_cbp['states'])} state and "
+                f"{len(hotel_cbp['counties'])} county records"
+            ),
+            "current_year": HOTEL_CBP_CURRENT_YEAR,
+            "comparison_year": HOTEL_CBP_COMPARISON_YEAR,
+        }
+    except Exception as exc:
+        hotel_cbp = {
+            "naics": HOTEL_NAICS,
+            "industry": "Hotels (except Casino Hotels) and Motels",
+            "current_year": HOTEL_CBP_CURRENT_YEAR,
+            "comparison_year": HOTEL_CBP_COMPARISON_YEAR,
+            "national": {},
+            "states": [],
+            "counties": [],
+            "interpretation": (
+                "Hotel County Business Patterns data was unavailable during "
+                "this update."
+            ),
+        }
+        statuses["hotel_cbp"] = {"status": "error", "message": str(exc)}
+
     for record in records:
         state_fips = record.get("state_fips", "")
         record["abbr"] = record.get("abbr") or STATE_FIPS.get(
@@ -1082,7 +1329,7 @@ def main() -> int:
         if source["status"] == "success"
     )
     overall_status = (
-        "success" if successful_sources == 5
+        "success" if successful_sources == 6
         else "partial success" if successful_sources > 0
         else "error"
     )
@@ -1114,6 +1361,7 @@ def main() -> int:
         "records": sorted(records, key=lambda item: item.get("name", "")),
         "hud_fmr_areas": hud_areas,
         "fema_recent_declarations": fema_recent,
+        "hotel_cbp": hotel_cbp,
     }
 
     Path("census_state_data.json").write_text(

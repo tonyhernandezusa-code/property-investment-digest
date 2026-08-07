@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Hotel Investment Analysis | Property Investment Digest</title>
+  <meta name="description" content="Hotel investment calculator for ADR, occupancy, RevPAR, GOPPAR, NOI, cap rate, DSCR, debt yield, price per key and pro forma scenarios.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <div class="header-wrap">
+    <div class="brand">Property Investment Digest</div>
+    <p class="tagline">Research. Analyze. Understand.</p>
+    <nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="hotel-market.html">Hotel Market</a><a href="hotel-analysis.html">Hotel Analysis</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <button class="button secondary" id="learningToggle" type="button">🎓 Learning Mode: Off</button>
+    <button class="button secondary" id="saveButton" type="button">Save Inputs</button>
+    <button class="button secondary" id="loadButton" type="button">Load Saved</button>
+    <button class="button secondary" id="printButton" type="button">Print</button>
+  </div>
+
+  <section class="hero">
+    <h1>Hotel Investment Analysis</h1>
+    <p>Analyze a hotel using user-entered operating assumptions. Market occupancy, ADR and RevPAR are not supplied by the federal government and therefore are entered by the user.</p>
+    <span class="source-chip">ADR</span><span class="source-chip">RevPAR</span><span class="source-chip">GOPPAR</span>
+    <span class="source-chip">NOI</span><span class="source-chip">DSCR</span><span class="source-chip">Price / Key</span>
+  </section>
+
+  <div class="learning-box">
+    <strong>Learning Mode:</strong> Hotel performance changes quickly with occupancy and room rates. This calculator separates room revenue, other hotel revenue, variable operating costs, fixed operating costs, fees, fixed charges, and financing so the assumptions remain visible.
+  </div>
+
+  <div class="hotel-grid">
+    <section class="card">
+      <h2>Property & Rooms</h2>
+      <div class="input-grid">
+        <label>Purchase price <input data-field="price" type="number" min="0" step="1000" value="15000000"></label>
+        <label>Number of rooms / keys <input data-field="rooms" type="number" min="1" step="1" value="120"></label>
+        <label>Occupancy % <input data-field="occupancy" type="number" min="0" max="100" step="0.1" value="70"></label>
+        <label>ADR — Average Daily Rate <input data-field="adr" type="number" min="0" step="1" value="175"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Other Annual Revenue</h2>
+      <div class="input-grid">
+        <label>Food & beverage <input data-field="fbRevenue" type="number" min="0" step="1000" value="850000"></label>
+        <label>Events / meetings <input data-field="eventsRevenue" type="number" min="0" step="1000" value="250000"></label>
+        <label>Parking / resort / amenity fees <input data-field="feeRevenue" type="number" min="0" step="1000" value="300000"></label>
+        <label>Other revenue <input data-field="otherRevenue" type="number" min="0" step="1000" value="100000"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Variable Costs</h2>
+      <div class="input-grid">
+        <label>Rooms variable cost / occupied room <input data-field="roomVariableCost" type="number" min="0" step="1" value="28"></label>
+        <label>F&B expense % of F&B revenue <input data-field="fbExpensePct" type="number" min="0" max="100" step="0.1" value="65"></label>
+        <label>Events expense % <input data-field="eventsExpensePct" type="number" min="0" max="100" step="0.1" value="45"></label>
+        <label>Amenity/other revenue expense % <input data-field="otherRevenueExpensePct" type="number" min="0" max="100" step="0.1" value="20"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Fixed / Semi-Fixed Operating Costs</h2>
+      <div class="input-grid">
+        <label>Payroll & benefits <input data-field="payroll" type="number" min="0" step="1000" value="2200000"></label>
+        <label>Utilities <input data-field="utilities" type="number" min="0" step="1000" value="420000"></label>
+        <label>Repairs & maintenance <input data-field="repairs" type="number" min="0" step="1000" value="360000"></label>
+        <label>Sales & marketing <input data-field="marketing" type="number" min="0" step="1000" value="250000"></label>
+        <label>Administrative & general <input data-field="admin" type="number" min="0" step="1000" value="300000"></label>
+        <label>Other operating expense <input data-field="otherOpEx" type="number" min="0" step="1000" value="125000"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Hotel Fees & Fixed Charges</h2>
+      <div class="input-grid">
+        <label>Franchise fee % of room revenue <input data-field="franchisePct" type="number" min="0" max="100" step="0.1" value="5"></label>
+        <label>Management fee % of total revenue <input data-field="managementPct" type="number" min="0" max="100" step="0.1" value="3"></label>
+        <label>Property taxes <input data-field="taxes" type="number" min="0" step="1000" value="300000"></label>
+        <label>Insurance <input data-field="insurance" type="number" min="0" step="1000" value="180000"></label>
+        <label>FF&E reserve % of total revenue <input data-field="ffePct" type="number" min="0" max="100" step="0.1" value="4"></label>
+        <label>Ground lease / other fixed charges <input data-field="otherFixed" type="number" min="0" step="1000" value="0"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Financing</h2>
+      <div class="input-grid">
+        <label>Loan amount <input data-field="loan" type="number" min="0" step="1000" value="9750000"></label>
+        <label>Interest rate % <input data-field="rate" type="number" min="0" step="0.01" value="6.75"></label>
+        <label>Amortization years <input data-field="amortYears" type="number" min="1" step="1" value="25"></label>
+        <label>Interest-only years <input data-field="ioYears" type="number" min="0" step="1" value="0"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Projection Assumptions</h2>
+      <div class="input-grid">
+        <label>ADR annual growth % <input data-field="adrGrowth" type="number" step="0.1" value="3"></label>
+        <label>Occupancy annual change (points) <input data-field="occupancyChange" type="number" step="0.1" value="0.5"></label>
+        <label>Other revenue annual growth % <input data-field="otherRevenueGrowth" type="number" step="0.1" value="2.5"></label>
+        <label>Operating expense annual growth % <input data-field="expenseGrowth" type="number" step="0.1" value="3"></label>
+        <label>Exit cap rate % <input data-field="exitCap" type="number" min="0.1" step="0.1" value="8"></label>
+        <label>Selling costs % <input data-field="sellingCostPct" type="number" min="0" max="20" step="0.1" value="2"></label>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Hotel Operating Results</h2>
+    <div class="market-profile" id="results"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Occupancy / ADR Scenarios</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Scenario</th><th>Occupancy</th><th>ADR</th><th>RevPAR</th><th>Total Revenue</th><th>NOI</th><th>DSCR</th></tr></thead>
+        <tbody id="scenarioBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>10-Year Illustrative Pro Forma</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Year</th><th>Occupancy</th><th>ADR</th><th>Room Revenue</th><th>Total Revenue</th><th>NOI</th><th>Debt Service</th><th>Cash Flow</th></tr></thead>
+        <tbody id="proFormaBody"></tbody>
+      </table>
+    </div>
+    <div class="market-profile" id="returnResults"></div>
+  </section>
+
+  <section class="card" style="margin-top:18px;">
+    <h2>Definitions</h2>
+    <div class="hotel-definitions">
+      <p><strong>ADR:</strong> Room revenue divided by occupied room nights.</p>
+      <p><strong>RevPAR:</strong> Room revenue divided by available room nights.</p>
+      <p><strong>TRevPAR:</strong> Total hotel revenue divided by available room nights.</p>
+      <p><strong>GOPPAR:</strong> Simplified gross operating profit divided by available room nights.</p>
+      <p><strong>NOI:</strong> In this educational model, simplified GOP less property taxes, insurance, FF&E reserve and other fixed charges, before debt service and income taxes.</p>
+      <p><strong>Price per key:</strong> Purchase price divided by room count.</p>
+      <p><strong>DSCR:</strong> NOI divided by annual debt service.</p>
+      <p><strong>Debt yield:</strong> NOI divided by loan amount.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <strong>Educational model only.</strong> This is not a USALI-compliant hotel accounting statement, appraisal, forecast, financing commitment, investment recommendation, or substitute for property-specific due diligence.
+</footer>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const fields=[...document.querySelectorAll("[data-field]")];
+const val=name=>Number(document.querySelector(`[data-field="${name}"]`).value)||0;
+const moneyFmt=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const numFmt=new Intl.NumberFormat("en-US",{maximumFractionDigits:0});
+const money=v=>Number.isFinite(v)?moneyFmt.format(v):"N/A";
+const num=v=>Number.isFinite(v)?numFmt.format(v):"N/A";
+const pct=v=>Number.isFinite(v)?v.toFixed(2)+"%":"N/A";
+const card=(label,value,note="")=>`<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`;
+
+function annualDebtService(loan,rate,years,io){
+  if(loan<=0) return 0;
+  if(io) return loan*(rate/100);
+  const r=rate/100/12,n=years*12;
+  if(r===0) return loan/n*12;
+  const p=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  return p*12;
+}
+function loanBalance(loan,rate,years,yearsElapsed){
+  if(loan<=0) return 0;
+  const r=rate/100/12,n=years*12,k=Math.min(yearsElapsed*12,n);
+  if(r===0) return Math.max(0,loan*(1-k/n));
+  const payment=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+  return Math.max(0,loan*Math.pow(1+r,k)-payment*(Math.pow(1+r,k)-1)/r);
+}
+function metrics(occ,adr,projectionFactor=1, otherRevenueFactor=1){
+  const rooms=val("rooms"),available=rooms*365,occupied=available*(occ/100);
+  const roomRevenue=occupied*adr;
+  const fb=val("fbRevenue")*otherRevenueFactor, events=val("eventsRevenue")*otherRevenueFactor;
+  const fee=val("feeRevenue")*otherRevenueFactor, other=val("otherRevenue")*otherRevenueFactor;
+  const totalRevenue=roomRevenue+fb+events+fee+other;
+  const variable=occupied*val("roomVariableCost")
+    +fb*(val("fbExpensePct")/100)+events*(val("eventsExpensePct")/100)
+    +(fee+other)*(val("otherRevenueExpensePct")/100);
+  const baseFixed=(val("payroll")+val("utilities")+val("repairs")+val("marketing")+val("admin")+val("otherOpEx"))*projectionFactor;
+  const franchise=roomRevenue*(val("franchisePct")/100);
+  const management=totalRevenue*(val("managementPct")/100);
+  const gop=totalRevenue-variable-baseFixed-franchise-management;
+  const taxes=(val("taxes")+val("insurance")+val("otherFixed"))*projectionFactor;
+  const ffe=totalRevenue*(val("ffePct")/100);
+  const noi=gop-taxes-ffe;
+  return {available,occupied,roomRevenue,totalRevenue,variable,baseFixed,franchise,management,gop,ffe,noi,
+    revpar:available?roomRevenue/available:0,trevpar:available?totalRevenue/available:0,goppar:available?gop/available:0};
+}
+function irr(cashflows){
+  let low=-0.99,high=10;
+  const npv=r=>cashflows.reduce((sum,cf,i)=>sum+cf/Math.pow(1+r,i),0);
+  if(npv(low)*npv(high)>0) return null;
+  for(let i=0;i<200;i++){const mid=(low+high)/2; const v=npv(mid); if(Math.abs(v)<0.01)return mid; if(npv(low)*v<=0)high=mid;else low=mid;}
+  return (low+high)/2;
+}
+
+function calculate(){
+  const occ=Math.min(100,Math.max(0,val("occupancy"))),adr=val("adr"),base=metrics(occ,adr);
+  const loan=val("loan"),rate=val("rate"),amort=val("amortYears"),ioYears=val("ioYears");
+  const debt=annualDebtService(loan,rate,amort,ioYears>0);
+  const equity=Math.max(0,val("price")-loan);
+  const dscr=debt>0?base.noi/debt:null;
+  const fixedForBreakEven=(val("payroll")+val("utilities")+val("repairs")+val("marketing")+val("admin")+val("otherOpEx")+val("taxes")+val("insurance")+val("otherFixed"));
+  const otherRev=val("fbRevenue")+val("eventsRevenue")+val("feeRevenue")+val("otherRevenue");
+  const otherVar=val("fbRevenue")*val("fbExpensePct")/100+val("eventsRevenue")*val("eventsExpensePct")/100+(val("feeRevenue")+val("otherRevenue"))*val("otherRevenueExpensePct")/100;
+  const roomContributionPerOccupied=adr-val("roomVariableCost")-adr*val("franchisePct")/100;
+  const fixedNeed=fixedForBreakEven+debt+otherVar+otherRev*val("managementPct")/100+otherRev*val("ffePct")/100-otherRev;
+  const available=base.available;
+  const breakEvenOcc=roomContributionPerOccupied>0&&available>0?Math.max(0,Math.min(100,fixedNeed/(available*roomContributionPerOccupied)*100)):null;
+
+  $("results").innerHTML=[
+    card("Available room nights",num(base.available)),
+    card("Occupied room nights",num(base.occupied)),
+    card("Room revenue",money(base.roomRevenue)),
+    card("Total revenue",money(base.totalRevenue)),
+    card("ADR",money(adr)),
+    card("RevPAR",money(base.revpar)),
+    card("TRevPAR",money(base.trevpar)),
+    card("Simplified GOP",money(base.gop)),
+    card("GOP margin",pct(base.totalRevenue?base.gop/base.totalRevenue*100:0)),
+    card("GOPPAR",money(base.goppar)),
+    card("NOI",money(base.noi)),
+    card("NOI margin",pct(base.totalRevenue?base.noi/base.totalRevenue*100:0)),
+    card("Cap rate",pct(val("price")?base.noi/val("price")*100:0)),
+    card("Price per key",money(val("rooms")?val("price")/val("rooms"):0)),
+    card("Annual debt service",money(debt),ioYears>0?"Interest-only debt service shown":"Amortizing debt service"),
+    card("DSCR",dscr!==null?dscr.toFixed(2)+"x":"N/A"),
+    card("Debt yield",pct(loan?base.noi/loan*100:0)),
+    card("Cash flow before tax",money(base.noi-debt)),
+    card("Cash-on-cash",pct(equity?(base.noi-debt)/equity*100:0)),
+    card("Illustrative debt-service break-even occupancy",breakEvenOcc!==null?pct(breakEvenOcc):"N/A","Simplified sensitivity calculation")
+  ].join("");
+
+  const scenarios=[
+    ["Conservative",Math.max(0,occ-5),adr*0.95],
+    ["Base",occ,adr],
+    ["Optimistic",Math.min(100,occ+5),adr*1.05]
+  ];
+  $("scenarioBody").innerHTML=scenarios.map(([name,o,a])=>{
+    const m=metrics(o,a),d=debt>0?m.noi/debt:null;
+    return `<tr><td>${name}</td><td>${pct(o)}</td><td>${money(a)}</td><td>${money(m.revpar)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${d!==null?d.toFixed(2)+"x":"N/A"}</td></tr>`;
+  }).join("");
+
+  let rows="",cashflows=[-equity],totalPositive=0,lastNoi=0;
+  const expenseGrowth=val("expenseGrowth")/100,adrGrowth=val("adrGrowth")/100,otherGrowth=val("otherRevenueGrowth")/100;
+  for(let year=1;year<=10;year++){
+    const yOcc=Math.min(100,Math.max(0,occ+val("occupancyChange")*(year-1)));
+    const yAdr=adr*Math.pow(1+adrGrowth,year-1);
+    const expFactor=Math.pow(1+expenseGrowth,year-1);
+    const otherFactor=Math.pow(1+otherGrowth,year-1);
+    const m=metrics(yOcc,yAdr,expFactor,otherFactor);
+    const yearDebt=annualDebtService(loan,rate,amort,year<=ioYears);
+    const cf=m.noi-yearDebt;
+    cashflows.push(cf); totalPositive+=cf; lastNoi=m.noi;
+    rows+=`<tr><td>${year}</td><td>${pct(yOcc)}</td><td>${money(yAdr)}</td><td>${money(m.roomRevenue)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${money(yearDebt)}</td><td>${money(cf)}</td></tr>`;
+  }
+  $("proFormaBody").innerHTML=rows;
+  const year11Occ=Math.min(100,Math.max(0,occ+val("occupancyChange")*10));
+  const year11Adr=adr*Math.pow(1+adrGrowth,10);
+  const year11=metrics(year11Occ,year11Adr,Math.pow(1+expenseGrowth,10),Math.pow(1+otherGrowth,10));
+  const exitCap=val("exitCap")/100;
+  const grossSale=exitCap>0?year11.noi/exitCap:0;
+  const netSale=grossSale*(1-val("sellingCostPct")/100);
+  const balance=ioYears>=10?loan:loanBalance(loan,rate,amort,Math.max(0,10-ioYears));
+  const saleEquity=Math.max(0,netSale-balance);
+  cashflows[10]+=saleEquity;
+  totalPositive+=saleEquity;
+  const projectIrr=irr(cashflows);
+  $("returnResults").innerHTML=[
+    card("Initial equity",money(equity)),
+    card("Illustrative Year 11 NOI",money(year11.noi)),
+    card("Illustrative gross sale value",money(grossSale),"Year 11 NOI ÷ exit cap"),
+    card("Estimated loan balance at exit",money(balance)),
+    card("Illustrative net sale equity",money(saleEquity)),
+    card("10-year equity multiple",equity>0?(totalPositive/equity).toFixed(2)+"x":"N/A"),
+    card("Illustrative 10-year IRR",projectIrr!==null?pct(projectIrr*100):"N/A")
+  ].join("");
+}
+fields.forEach(f=>f.addEventListener("input",calculate));
+$("saveButton").addEventListener("click",()=>{const data={};fields.forEach(f=>data[f.dataset.field]=f.value);localStorage.setItem("pid_hotel_analysis",JSON.stringify(data));alert("Hotel analysis inputs saved in this browser.");});
+$("loadButton").addEventListener("click",()=>{const raw=localStorage.getItem("pid_hotel_analysis");if(!raw){alert("No saved hotel inputs were found.");return;}const data=JSON.parse(raw);fields.forEach(f=>{if(data[f.dataset.field]!==undefined)f.value=data[f.dataset.field];});calculate();});
+$("printButton").addEventListener("click",()=>window.print());
+const learningButton=$("learningToggle");
+function setLearning(on){document.body.classList.toggle("learning-on",on);learningButton.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off");}
+learningButton.addEventListener("click",()=>setLearning(!document.body.classList.contains("learning-on")));
+setLearning(localStorage.getItem("pid_learning_mode")==="on");
+calculate();
+})();
+</script>
+</body>
+</html>

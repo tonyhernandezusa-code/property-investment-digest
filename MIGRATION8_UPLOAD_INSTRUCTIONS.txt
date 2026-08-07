@@ -1,0 +1,43 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8 HOTEL SECTION
+
+UPLOAD
+1. Download and unzip property-investment-digest-migration8.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the extracted Migration 8 folder.
+5. Drag the selected files into GitHub.
+6. Commit message:
+   Add hotel market and investment analysis
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+
+RUN THE DATA UPDATE
+1. Click Actions.
+2. Select Update Government Data.
+3. Click Run workflow.
+4. Confirm branch main.
+5. Click the green Run workflow button.
+6. Wait for the green check.
+7. Wait for Pages build and deployment.
+
+TEST
+Hotel Market:
+https://tonyhernandezusa-code.github.io/property-investment-digest/hotel-market.html
+
+Hotel Analysis:
+https://tonyhernandezusa-code.github.io/property-investment-digest/hotel-analysis.html
+
+On Hotel Market:
+- Florida should open first.
+- Texas should be comparison.
+- Search a Florida county such as Miami-Dade.
+- Confirm national and state hotel establishment/employment/payroll data populate.
+
+On Hotel Analysis:
+- Change occupancy or ADR and confirm results change immediately.
+- Test conservative/base/optimistic scenarios.
+- Test Save Inputs and Load Saved.
+
+NO NEW API SECRET IS REQUIRED.
+Do not upload the ZIP itself.
+Do not change the original Stock-digest repository.

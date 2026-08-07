@@ -237,3 +237,45 @@
 #areaSearch { width: 100%; }
 #areaBody td:nth-child(2) { min-width: 260px; }
 #disasterBody td:nth-child(5) { min-width: 280px; }
+
+/* Migration 8: Hotel section */
+.hotel-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:18px;
+  margin-top:18px;
+}
+.input-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+  gap:12px;
+}
+.input-grid label {
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-weight:600;
+  font-size:14px;
+}
+.input-grid input, .market-controls input {
+  box-sizing:border-box;
+  width:100%;
+  padding:10px 11px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  background:#fff;
+  color:#172033;
+}
+.hotel-definitions {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:12px 22px;
+}
+@media (max-width: 720px) {
+  .hotel-grid { grid-template-columns:1fr; }
+  .input-grid { grid-template-columns:1fr; }
+}
+@media print {
+  header nav, .toolbar { display:none !important; }
+  .card { break-inside:avoid; }
+}
