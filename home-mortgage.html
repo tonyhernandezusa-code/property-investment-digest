@@ -1,0 +1,101 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Home & Condo Mortgage Calculator | Property Investment Digest</title>
+<meta name="description" content="Mortgage calculator for single-family homes, condominiums and townhouses with HOA, PMI, ARM, buyer brokerage, closing costs and amortization.">
+<link rel="stylesheet" href="styles.css"></head><body>
+<header><div class="wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="hotel-market.html">Hotel Market</a><a href="hotel-analysis.html">Hotel Analysis</a><a href="home-mortgage.html">Home Mortgage</a><a href="home-affordability.html">Affordability</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
+<main>
+<div class="toolbar"><button class="button secondary" id="learningToggle">🎓 Learning Mode: Off</button><button class="button secondary" id="saveButton">Save Inputs</button><button class="button secondary" id="loadButton">Load Saved</button><button class="button secondary" onclick="window.print()">Print</button></div>
+<section class="hero"><h1>Home &amp; Condo Mortgage Calculator</h1><p>Estimate monthly ownership cost and cash to close for a single-family home, condominium, or townhouse.</p></section>
+<div class="learning-box"><strong>Learning Mode:</strong> The mortgage payment is only part of homeownership. This page separates principal and interest from taxes, insurance, HOA dues, PMI, flood insurance, special assessments, maintenance, brokerage compensation and closing costs.</div>
+
+<div class="residential-grid">
+<section class="card"><h2>Property &amp; Purchase</h2><div class="input-grid">
+<label>Property type<select data-f="propertyType"><option value="single">Single-Family Home</option><option value="condo">Condominium</option><option value="townhouse">Townhouse</option></select></label>
+<label>Purchase price<input data-f="price" type="number" min="0" step="1000" value="400000"></label>
+<label>Down payment method<select data-f="downMethod"><option value="percent">Percentage</option><option value="dollar">Dollar amount</option></select></label>
+<label>Down payment<input data-f="downAmount" type="number" min="0" step="0.1" value="20"><span class="field-help" id="downHelp">Enter 20 for 20%.</span></label>
+</div></section>
+
+<section class="card"><h2>Mortgage</h2><div class="input-grid">
+<label>Loan type<select data-f="loanType"><option value="fixed">Fixed rate</option><option value="arm">Adjustable / floating rate</option></select></label>
+<label>Initial interest rate %<input data-f="rate" type="number" min="0" step="0.01" value="6.50"></label>
+<label>Loan term<select data-f="termYears"><option value="15">15 years</option><option value="20">20 years</option><option value="30" selected>30 years</option><option value="40">40 years</option></select></label>
+<label>Optional balloon due (years; 0 = none)<input data-f="balloonYears" type="number" min="0" step="1" value="0"></label>
+</div>
+<div class="subsection arm-settings" id="armSettings" hidden><h3>ARM / Adjustable-Rate Assumptions</h3><div class="input-grid">
+<label>Reference index<select data-f="armIndexName"><option>SOFR</option><option>Prime</option><option>U.S. Treasury</option><option>Other / custom</option></select></label>
+<label>Initial fixed period (years)<input data-f="armFixedYears" type="number" min="0" step="0.25" value="5"></label>
+<label>Index rate assumed at first reset %<input data-f="armIndexRate" type="number" min="0" step="0.01" value="4.25"></label>
+<label>Margin / spread %<input data-f="armMargin" type="number" min="0" step="0.01" value="2.50"></label>
+<label>Adjustment frequency<select data-f="armAdjustmentMonths"><option value="1">Monthly</option><option value="3">Quarterly</option><option value="6">Semiannual</option><option value="12" selected>Annual</option></select></label>
+<label>Index change after first reset (points/year)<input data-f="armAnnualChange" type="number" step="0.01" value="0.25"></label>
+<label>Rate floor %<input data-f="armFloor" type="number" min="0" step="0.01" value="0"></label>
+<label>Lifetime rate cap %<input data-f="armCap" type="number" min="0" step="0.01" value="10"></label>
+</div><p class="metric-note">This is a user-entered stress test, not a forecast of future benchmark rates.</p></div>
+</section>
+
+<section class="card"><h2>Monthly Ownership Costs</h2><div class="input-grid">
+<label>Property taxes / year<input data-f="taxAnnual" type="number" min="0" step="100" value="4800"></label>
+<label>Home / condo insurance / year<input data-f="insuranceAnnual" type="number" min="0" step="100" value="2400"></label>
+<label>HOA / condo dues / month<input data-f="hoaMonthly" type="number" min="0" step="10" value="0"></label>
+<label>Special assessment / month<input data-f="assessmentMonthly" type="number" min="0" step="10" value="0"></label>
+<label>PMI / mortgage insurance / month<input data-f="pmiMonthly" type="number" min="0" step="10" value="0"></label>
+<label>Flood insurance / year<input data-f="floodAnnual" type="number" min="0" step="100" value="0"></label>
+<label>Estimated maintenance / month<input data-f="maintenanceMonthly" type="number" min="0" step="10" value="333"></label>
+<label>Extra principal / month<input data-f="extraPrincipal" type="number" min="0" step="10" value="0"></label>
+</div><label class="check-line"><input data-f="biweekly" type="checkbox"> Model one additional scheduled mortgage payment per year (simplified biweekly equivalent)</label></section>
+
+<section class="card"><h2>Buyer Brokerage &amp; Closing Costs</h2><div class="input-grid">
+<label>Buyer-broker compensation method<select data-f="brokerMethod"><option value="percent">Percentage of price</option><option value="flat">Flat dollar amount</option></select></label>
+<label>Agreed buyer-broker compensation<input data-f="brokerAmount" type="number" min="0" step="0.01" value="0"><span class="field-help" id="brokerHelp">Enter percentage, such as 2.5.</span></label>
+<label>Seller/listing side pays toward buyer brokerage<input data-f="sellerBroker" type="number" min="0" step="100" value="0"></label>
+<label>Other closing costs %<input data-f="closingPct" type="number" min="0" step="0.1" value="3"></label>
+<label>Seller concession / closing credit<input data-f="sellerCredit" type="number" min="0" step="100" value="0"></label>
+<label>Home inspection<input data-f="inspection" type="number" min="0" step="50" value="500"></label>
+<label>One-time special assessment due at closing<input data-f="assessmentOneTime" type="number" min="0" step="100" value="0"></label>
+<label>Other one-time buyer costs<input data-f="otherOneTime" type="number" min="0" step="100" value="0"></label>
+</div><p class="field-help">Buyer-paid brokerage is treated as cash at closing. This model does not automatically add it to the mortgage balance.</p></section>
+</div>
+
+<section class="card" style="margin-top:18px"><h2>Results</h2><div class="market-profile" id="results"></div></section>
+<section class="card" style="margin-top:18px"><h2>Annual Mortgage Schedule</h2><div class="table-wrap"><table><thead><tr><th>Year</th><th>Avg. Rate</th><th>Payments</th><th>Interest</th><th>Principal</th><th>Extra Principal</th><th>Ending Balance</th></tr></thead><tbody id="scheduleBody"></tbody></table></div></section>
+</main>
+<footer><strong>Educational estimate only.</strong> Actual mortgage, insurance, association, brokerage, seller-credit and settlement terms vary.</footer>
+<script>
+(function(){
+"use strict";
+const fields=[...document.querySelectorAll("[data-f]")], el=n=>document.querySelector(`[data-f="${n}"]`);
+const n=n=>{const e=el(n);return e.type==="checkbox"?(e.checked?1:0):(Number(e.value)||0)}, s=n=>el(n).value;
+const mf=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0});
+const money=x=>Number.isFinite(x)?mf.format(x):"N/A", pct=x=>Number.isFinite(x)?x.toFixed(2)+"%":"N/A";
+const card=(a,b,c="")=>`<div class="result"><div class="label">${a}</div><div class="value">${b}</div>${c?`<div class="metric-note">${c}</div>`:""}</div>`;
+function pmt(p,rate,months){if(p<=0)return 0;const r=rate/100/12;if(!r)return p/months;return p*r/(1-Math.pow(1+r,-months))}
+function getInputs(){const price=n("price"),raw=n("downAmount"),down=s("downMethod")==="dollar"?Math.min(price,raw):Math.min(price,price*raw/100);return{
+price,down,propertyType:s("propertyType"),loanType:s("loanType"),rate:n("rate"),termYears:n("termYears"),balloonYears:n("balloonYears"),
+armIndexName:s("armIndexName"),armFixedYears:n("armFixedYears"),armIndexRate:n("armIndexRate"),armMargin:n("armMargin"),armAdjustmentMonths:n("armAdjustmentMonths"),armAnnualChange:n("armAnnualChange"),armFloor:n("armFloor"),armCap:n("armCap"),
+taxAnnual:n("taxAnnual"),insuranceAnnual:n("insuranceAnnual"),hoaMonthly:n("hoaMonthly"),assessmentMonthly:n("assessmentMonthly"),pmiMonthly:n("pmiMonthly"),floodAnnual:n("floodAnnual"),maintenanceMonthly:n("maintenanceMonthly"),extraPrincipal:n("extraPrincipal"),biweekly:!!n("biweekly"),
+brokerMethod:s("brokerMethod"),brokerAmount:n("brokerAmount"),sellerBroker:n("sellerBroker"),closingPct:n("closingPct"),sellerCredit:n("sellerCredit"),inspection:n("inspection"),assessmentOneTime:n("assessmentOneTime"),otherOneTime:n("otherOneTime")}}
+function rateAt(i,m){if(i.loanType!=="arm")return i.rate;const fm=Math.round(i.armFixedYears*12);if(m<=fm)return i.rate;const freq=Math.max(1,Math.round(i.armAdjustmentMonths)),k=Math.floor((m-fm-1)/freq),idx=i.armIndexRate+i.armAnnualChange*(k*freq/12);let r=idx+i.armMargin;if(i.armFloor>0)r=Math.max(r,i.armFloor);if(i.armCap>0)r=Math.min(r,i.armCap);return Math.max(0,r)}
+function schedule(i){const loan=Math.max(0,i.price-i.down),months=Math.max(1,Math.round(i.termYears*12)),balloon=i.balloonYears>0?Math.min(months,Math.round(i.balloonYears*12)):0;let bal=loan,payment=0,prior=null;const rows=[];for(let m=1;m<=months&&bal>.005;m++){const begin=bal,rate=rateAt(i,m),interest=begin*rate/100/12,rem=months-m+1;if(prior===null||Math.abs(rate-prior)>1e-9)payment=pmt(begin,rate,rem);const scheduled=Math.min(payment,begin+interest),basePrincipal=Math.max(0,scheduled-interest),bio=i.biweekly?scheduled/12:0,extra=Math.min(i.extraPrincipal+bio,Math.max(0,begin-basePrincipal));bal=Math.max(0,begin-basePrincipal-extra);rows.push({m,rate,scheduled,interest,principal:basePrincipal,extra,ending:bal});prior=rate;if(balloon&&m===balloon)break}return rows}
+function calc(){const i=getInputs(),loan=Math.max(0,i.price-i.down),rows=schedule(i),first=rows[0]||{scheduled:0},tax=i.taxAnnual/12,ins=i.insuranceAnnual/12,flood=i.floodAnnual/12;
+const required=first.scheduled+tax+ins+i.hoaMonthly+i.assessmentMonthly+i.pmiMonthly+flood+i.maintenanceMonthly,planned=required+i.extraPrincipal+(i.biweekly?first.scheduled/12:0);
+const bt=i.brokerMethod==="flat"?i.brokerAmount:i.price*i.brokerAmount/100,sellerBroker=Math.min(bt,Math.max(0,i.sellerBroker)),buyerBroker=Math.max(0,bt-sellerBroker);
+const grossClose=i.price*i.closingPct/100,sellerCredit=Math.min(grossClose,Math.max(0,i.sellerCredit)),netClose=Math.max(0,grossClose-sellerCredit),cash=i.down+netClose+buyerBroker+i.inspection+i.assessmentOneTime+i.otherOneTime;
+const type=i.propertyType==="condo"?"Condominium":i.propertyType==="townhouse"?"Townhouse":"Single-Family Home",reset=i.loanType==="arm"?rateAt(i,Math.round(i.armFixedYears*12)+1):NaN,totalInt=rows.reduce((a,r)=>a+r.interest,0),balloon=i.balloonYears>0&&rows.length?rows[rows.length-1].ending:0;
+document.getElementById("results").innerHTML=[
+card("Property type",type),card("Down payment",money(i.down),i.price?pct(i.down/i.price*100):""),card("Mortgage amount",money(loan)),card("Initial principal & interest",money(first.scheduled)+"/mo"),
+card("Property taxes",money(tax)+"/mo"),card("Insurance",money(ins)+"/mo"),card("HOA / condo dues",money(i.hoaMonthly)+"/mo"),card("Special assessment",money(i.assessmentMonthly)+"/mo"),card("PMI / mortgage insurance",money(i.pmiMonthly)+"/mo"),card("Flood insurance",money(flood)+"/mo"),card("Maintenance",money(i.maintenanceMonthly)+"/mo"),
+card("Estimated required monthly housing cost",money(required)+"/mo"),card("Planned monthly outflow",money(planned)+"/mo","Includes optional extra principal / biweekly equivalent"),
+card("Financing structure",i.loanType==="arm"?`ARM (${i.armIndexName} + ${i.armMargin.toFixed(2)}%)`:"Fixed rate"),card("Modeled first ARM reset rate",i.loanType==="arm"?pct(reset):"N/A"),
+card("Buyer-broker compensation",money(bt)),card("Seller-paid buyer brokerage",money(sellerBroker)),card("Buyer-paid brokerage",money(buyerBroker)),card("Gross other closing costs",money(grossClose)),card("Seller closing credit",money(sellerCredit)),card("Net other closing costs",money(netClose)),card("Estimated cash to close",money(cash)),card("Modeled total mortgage interest",money(totalInt)),card("Modeled payoff time",Math.floor(rows.length/12)+" yr "+rows.length%12+" mo"),card("Balloon balance due",i.balloonYears>0?money(balloon):"None modeled")
+].join("");
+const annual=[];for(let y=1;y<=Math.ceil(rows.length/12);y++){const rr=rows.slice((y-1)*12,y*12);if(!rr.length)continue;annual.push({y,rate:rr.reduce((a,r)=>a+r.rate,0)/rr.length,pay:rr.reduce((a,r)=>a+r.scheduled,0),interest:rr.reduce((a,r)=>a+r.interest,0),principal:rr.reduce((a,r)=>a+r.principal,0),extra:rr.reduce((a,r)=>a+r.extra,0),ending:rr[rr.length-1].ending})}
+document.getElementById("scheduleBody").innerHTML=annual.map(r=>`<tr><td>${r.y}</td><td>${pct(r.rate)}</td><td>${money(r.pay)}</td><td>${money(r.interest)}</td><td>${money(r.principal)}</td><td>${money(r.extra)}</td><td>${money(r.ending)}</td></tr>`).join("");
+document.getElementById("armSettings").hidden=i.loanType!=="arm";document.getElementById("downHelp").textContent=s("downMethod")==="dollar"?"Enter a dollar amount.":"Enter percentage, such as 20.";document.getElementById("brokerHelp").textContent=s("brokerMethod")==="flat"?"Enter a flat dollar amount.":"Enter percentage, such as 2.5."}
+fields.forEach(f=>{f.addEventListener("input",calc);f.addEventListener("change",calc)});
+document.getElementById("saveButton").onclick=()=>{const d={};fields.forEach(f=>d[f.dataset.f]=f.type==="checkbox"?f.checked:f.value);localStorage.setItem("pid_home_mortgage",JSON.stringify(d));alert("Home mortgage inputs saved in this browser.")};
+document.getElementById("loadButton").onclick=()=>{const raw=localStorage.getItem("pid_home_mortgage");if(!raw){alert("No saved home mortgage inputs found.");return}const d=JSON.parse(raw);fields.forEach(f=>{if(d[f.dataset.f]!==undefined){if(f.type==="checkbox")f.checked=!!d[f.dataset.f];else f.value=d[f.dataset.f]}});calc()};
+const lb=document.getElementById("learningToggle");function learning(on){document.body.classList.toggle("learning-on",on);lb.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off")}lb.onclick=()=>learning(!document.body.classList.contains("learning-on"));learning(localStorage.getItem("pid_learning_mode")==="on");calc();
+})();
+</script></body></html>

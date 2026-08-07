@@ -1,0 +1,62 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Home Affordability Calculator | Property Investment Digest</title><meta name="description" content="Home affordability model based on income, debts, cash, down payment, taxes, insurance, HOA, PMI, buyer brokerage and closing costs."><link rel="stylesheet" href="styles.css"></head><body>
+<header><div class="wrap"><div class="brand">Property Investment Digest</div><p class="tagline">Research. Analyze. Understand.</p><nav><a href="index.html">Home</a><a href="investment-map.html">Investment Map</a><a href="market-research.html">Market Research</a><a href="government-data.html">Government Data</a><a href="labor-housing.html">Labor &amp; HPI</a><a href="rent-disaster.html">Rent &amp; Disaster Context</a><a href="hotel-market.html">Hotel Market</a><a href="hotel-analysis.html">Hotel Analysis</a><a href="home-mortgage.html">Home Mortgage</a><a href="home-affordability.html">Affordability</a><a href="calculator.html">Full Calculators</a><a href="property-manager.html">Property Manager</a><a href="learning.html">Learning Center</a><a href="methodology.html">Methodology</a><a href="sources.html">Data Sources</a><a href="disclaimer.html">Disclaimer</a></nav></div></header>
+<main>
+<div class="toolbar"><button class="button secondary" id="learningToggle">🎓 Learning Mode: Off</button><button class="button secondary" onclick="window.print()">Print</button></div>
+<section class="hero"><h1>Home Affordability — How Much House Can I Model?</h1><p>Compare an income/debt-based price limit with a cash-to-close price limit.</p></section>
+<div class="learning-box"><strong>Learning Mode:</strong> This model separates monthly affordability from cash available. The lower of those two limits is shown as the illustrative purchase price.</div>
+
+<div class="residential-grid">
+<section class="card"><h2>Income &amp; Existing Debt</h2><div class="input-grid">
+<label>Your annual gross income<input data-f="income1" type="number" min="0" step="1000" value="75000"></label>
+<label>Co-borrower annual gross income<input data-f="income2" type="number" min="0" step="1000" value="0"></label>
+<label>Existing monthly debt payments<input data-f="monthlyDebt" type="number" min="0" step="50" value="500"></label>
+<label>Cash available for down payment &amp; closing<input data-f="cashAvailable" type="number" min="0" step="1000" value="40000"></label>
+</div></section>
+
+<section class="card"><h2>Housing Assumptions</h2><div class="input-grid">
+<label>Expected mortgage rate %<input data-f="rate" type="number" min="0" step="0.01" value="6.50"></label>
+<label>Loan term<select data-f="termYears"><option value="15">15 years</option><option value="20">20 years</option><option value="30" selected>30 years</option><option value="40">40 years</option></select></label>
+<label>Down payment %<input data-f="downPct" type="number" min="0" max="100" step="0.5" value="10"></label>
+<label>Property taxes % of price / year<input data-f="taxPct" type="number" min="0" step="0.05" value="1.20"></label>
+<label>Insurance % of price / year<input data-f="insurancePct" type="number" min="0" step="0.05" value="0.60"></label>
+<label>HOA / condo dues / month<input data-f="hoaMonthly" type="number" min="0" step="25" value="0"></label>
+<label>PMI / mortgage insurance / month<input data-f="pmiMonthly" type="number" min="0" step="10" value="150"></label>
+<label>Flood insurance / month<input data-f="floodMonthly" type="number" min="0" step="10" value="0"></label>
+</div></section>
+
+<section class="card"><h2>Affordability Ratios</h2><div class="input-grid">
+<label>Housing / front-end ratio %<input data-f="frontRatio" type="number" min="0" max="100" step="0.5" value="28"></label>
+<label>Total debt / back-end ratio %<input data-f="backRatio" type="number" min="0" max="100" step="0.5" value="36"></label>
+<label>Monthly maintenance budget<input data-f="maintenanceMonthly" type="number" min="0" step="25" value="300"></label>
+</div><p class="metric-note">These ratios are user-entered assumptions, not universal lender standards. Maintenance is shown for budgeting but excluded from the modeled DTI payment.</p></section>
+
+<section class="card"><h2>Purchase Costs</h2><div class="input-grid">
+<label>Other closing costs %<input data-f="closingPct" type="number" min="0" step="0.1" value="3"></label>
+<label>Buyer-paid brokerage %<input data-f="buyerBrokerPct" type="number" min="0" step="0.1" value="0"></label>
+<label>Seller credit toward other closing costs<input data-f="sellerCredit" type="number" min="0" step="100" value="0"></label>
+<label>Inspection / fixed buyer costs<input data-f="fixedBuyerCosts" type="number" min="0" step="50" value="500"></label>
+</div></section>
+</div>
+
+<section class="card" style="margin-top:18px"><h2>Affordability Results</h2><div class="market-profile" id="results"></div></section>
+<section class="card" style="margin-top:18px"><h2>Modeled Payment at the Illustrative Price</h2><div class="market-profile" id="paymentResults"></div></section>
+</main>
+<footer><strong>Educational affordability model only.</strong> It is not a mortgage preapproval, loan estimate or commitment to lend.</footer>
+<script>
+(function(){
+"use strict";
+const fields=[...document.querySelectorAll("[data-f]")],v=n=>Number(document.querySelector(`[data-f="${n}"]`).value)||0;
+const mf=new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}),money=x=>Number.isFinite(x)?mf.format(x):"N/A",pct=x=>Number.isFinite(x)?x.toFixed(2)+"%":"N/A";
+const card=(a,b,c="")=>`<div class="result"><div class="label">${a}</div><div class="value">${b}</div>${c?`<div class="metric-note">${c}</div>`:""}</div>`;
+function pmt(p,r,y){const n=y*12,m=r/100/12;if(p<=0)return 0;if(!m)return p/n;return p*m/(1-Math.pow(1+m,-n))}
+function house(price){const dp=Math.min(100,Math.max(0,v("downPct"))),loan=price*(1-dp/100),pi=pmt(loan,v("rate"),v("termYears")),tax=price*v("taxPct")/100/12,ins=price*v("insurancePct")/100/12,hoa=v("hoaMonthly"),pmi=v("pmiMonthly"),flood=v("floodMonthly");return{loan,pi,tax,ins,hoa,pmi,flood,total:pi+tax+ins+hoa+pmi+flood}}
+function cash(price){const down=price*v("downPct")/100,gross=price*v("closingPct")/100,credit=Math.min(gross,Math.max(0,v("sellerCredit"))),net=gross-credit,broker=price*v("buyerBrokerPct")/100,fixed=v("fixedBuyerCosts");return{down,gross,credit,net,broker,fixed,total:down+net+broker+fixed}}
+function solve(fn,limit){if(limit<=0)return 0;let lo=0,hi=5000000;for(let i=0;i<100;i++){const mid=(lo+hi)/2;if(fn(mid)<=limit)lo=mid;else hi=mid}return lo}
+function calc(){const mi=(v("income1")+v("income2"))/12,front=mi*v("frontRatio")/100,back=Math.max(0,mi*v("backRatio")/100-v("monthlyDebt")),budget=Math.max(0,Math.min(front,back)),incomePrice=solve(p=>house(p).total,budget),cashPrice=solve(p=>cash(p).total,v("cashAvailable")),price=Math.min(incomePrice,cashPrice),h=house(price),c=cash(price),maint=v("maintenanceMonthly"),frontActual=mi?h.total/mi*100:0,backActual=mi?(h.total+v("monthlyDebt"))/mi*100:0;
+document.getElementById("results").innerHTML=[card("Gross monthly household income",money(mi)),card("Housing-ratio budget",money(front)+"/mo",pct(v("frontRatio"))+" of gross income"),card("Back-end housing capacity",money(back)+"/mo","After existing monthly debts"),card("Modeled housing payment limit",money(budget)+"/mo"),card("Income / debt limited home price",money(incomePrice)),card("Cash limited home price",money(cashPrice)),card("Illustrative purchase price",money(price),"Lower of the two modeled limits"),card("Cash available",money(v("cashAvailable"))),card("Modeled cash needed",money(c.total))].join("");
+document.getElementById("paymentResults").innerHTML=[card("Mortgage amount",money(h.loan)),card("Principal & interest",money(h.pi)+"/mo"),card("Property taxes",money(h.tax)+"/mo"),card("Insurance",money(h.ins)+"/mo"),card("HOA / condo dues",money(h.hoa)+"/mo"),card("PMI / mortgage insurance",money(h.pmi)+"/mo"),card("Flood insurance",money(h.flood)+"/mo"),card("Modeled qualifying housing payment",money(h.total)+"/mo"),card("Maintenance budget",money(maint)+"/mo","Not included in modeled DTI"),card("Estimated household housing outflow",money(h.total+maint)+"/mo"),card("Modeled front-end ratio",pct(frontActual)),card("Modeled back-end ratio",pct(backActual)),card("Down payment",money(c.down)),card("Net closing costs",money(c.net)),card("Buyer-paid brokerage",money(c.broker)),card("Fixed buyer costs",money(c.fixed))].join("")}
+fields.forEach(f=>{f.addEventListener("input",calc);f.addEventListener("change",calc)});
+const lb=document.getElementById("learningToggle");function learning(on){document.body.classList.toggle("learning-on",on);lb.textContent=on?"🎓 Learning Mode: On":"🎓 Learning Mode: Off";localStorage.setItem("pid_learning_mode",on?"on":"off")}lb.onclick=()=>learning(!document.body.classList.contains("learning-on"));learning(localStorage.getItem("pid_learning_mode")==="on");calc();
+})();
+</script></body></html>

@@ -1,32 +1,12 @@
-# Property Investment Digest
+# Property Investment Digest — Migration 8.4
 
-## Migration 8.3 — Buyer Brokerage / Commission & Cash-to-Close
+Adds two restored and expanded residential tools:
 
-This package contains Migration 8.2 ARM/floating financing and adds optional buyer-broker compensation and seller-credit calculations to the Full Property Calculator.
+- `home-mortgage.html` — single-family, condominium and townhouse mortgage calculator.
+- `home-affordability.html` — income/debt and cash-to-close affordability calculator.
 
-### New acquisition fields
-- Buyer-broker compensation method: percentage or flat dollar amount
-- Agreed buyer-broker compensation
-- Seller/listing-side payment toward buyer brokerage
-- Seller concession / credit toward other closing costs
+Home Mortgage includes fixed/ARM financing, taxes, insurance, HOA/condo dues, PMI, flood insurance, monthly and one-time special assessments, maintenance, extra principal, simplified biweekly comparison, buyer brokerage, seller-paid brokerage, closing costs, seller credit, cash to close, optional balloon and annual amortization.
 
-### New results
-- Total buyer-broker compensation
-- Seller-paid buyer brokerage
-- Buyer-paid brokerage at closing
-- Seller credit toward other closing costs
-- Net other closing costs
-- Estimated cash to close / cash invested
-
-### Financing treatment
-The calculator intentionally treats the buyer-paid brokerage amount as cash at closing.
-It does **not** automatically add the brokerage amount to the mortgage balance.
-
-Estimated cash to close:
-Down payment
-+ Net other closing costs
-+ Buyer-paid brokerage
-
-Brokerage compensation is negotiable and transaction-specific. Loan-program rules and lender treatment must be verified independently.
+Home Affordability compares an income/debt-limited price with a cash-limited price and displays the lower amount as an educational illustrative price.
 
 No government-data update is required.

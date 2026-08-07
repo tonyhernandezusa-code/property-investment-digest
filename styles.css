@@ -289,3 +289,5 @@
   border-radius:10px;
   background:#f8fafc;
 }
+/* Migration 8.4: residential mortgage and affordability */
+.residential-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-top:18px}.check-line{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-weight:600}.check-line input{width:auto;margin-top:3px}@media(max-width:720px){.residential-grid{grid-template-columns:1fr}}

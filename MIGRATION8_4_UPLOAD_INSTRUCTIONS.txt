@@ -1,0 +1,26 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.4
+
+1. Download and unzip property-investment-digest-migration8-4-home-mortgage.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the extracted folder.
+5. Upload the files.
+6. Commit message:
+   Add home mortgage and affordability calculators
+7. Commit changes.
+8. Wait for Pages deployment.
+
+NO GOVERNMENT DATA UPDATE IS REQUIRED.
+
+TEST:
+https://tonyhernandezusa-code.github.io/property-investment-digest/home-mortgage.html
+https://tonyhernandezusa-code.github.io/property-investment-digest/home-affordability.html
+
+For the mortgage page, try:
+Condominium; $400,000; 20% down; 6.50%; 30 years; taxes $4,800/year; insurance $2,400/year; HOA $500/month; special assessment $150/month.
+
+For ARM, try:
+6.00% initial; fixed 5 years; first-reset index 4.25%; margin 2.50%.
+The first modeled reset should be 6.75%.
+
+After deployment press Ctrl+F5.
