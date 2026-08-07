@@ -1,5 +1,5 @@
 {
-  "updated_at_utc": null,
+  "updated_at_utc": "2026-08-07T02:48:25.545905+00:00",
   "source": "U.S. Securities and Exchange Commission EDGAR",
   "source_url": "https://www.sec.gov/edgar",
   "market_price_data_included": false,
@@ -37,9 +37,20 @@
     "PLTR"
   ],
   "companies": [],
-  "errors": [],
+  "errors": [
+    {
+      "ticker": "AAPL",
+      "error": "403 Client Error: Forbidden for url: https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json"
+    },
+    {
+      "ticker": "MSFT",
+      "error": "403 Client Error: Forbidden for url: https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json"
+    }
+  ],
   "notes": [
-    "Run the Update Stock Fundamentals GitHub Action once after installation.",
-    "No live or delayed stock prices are included."
+    "Financial statement values are extracted from issuer-filed XBRL facts.",
+    "Definitions and tagging can differ among issuers and across time.",
+    "This dataset does not contain live or delayed stock prices.",
+    "Price-dependent ratios such as P/E and market capitalization are intentionally omitted until a market-data source with appropriate display rights is configured."
   ]
 }
