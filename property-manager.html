@@ -129,10 +129,29 @@
         <div class="pm-form-section">
           <h3>Financing</h3>
           <div class="field-grid">
+            <div><label for="pmLoanType">Loan type</label>
+              <select id="pmLoanType">
+                <option value="fixed">Fixed rate</option>
+                <option value="arm">Adjustable / floating rate</option>
+              </select>
+            </div>
             <div><label for="pmLoanBalance">Current loan balance ($)</label><input id="pmLoanBalance" type="number" min="0" step="1000"></div>
-            <div><label for="pmAnnualDebtService">Annual debt service ($)</label><input id="pmAnnualDebtService" type="number" min="0" step="100"></div>
-            <div><label for="pmInterestRate">Interest rate (%)</label><input id="pmInterestRate" type="number" min="0" step="0.01"></div>
+            <div><label for="pmAnnualDebtService">Current annual debt service ($)</label><input id="pmAnnualDebtService" type="number" min="0" step="100"></div>
+            <div><label for="pmInterestRate">Current interest rate (%)</label><input id="pmInterestRate" type="number" min="0" step="0.01"></div>
             <div><label for="pmMaturityDate">Maturity or balloon date</label><input id="pmMaturityDate" type="date"></div>
+            <div><label for="pmArmIndex">ARM / floating index</label>
+              <select id="pmArmIndex">
+                <option value="">Not applicable</option>
+                <option value="SOFR">SOFR</option>
+                <option value="Prime">Prime</option>
+                <option value="Treasury">U.S. Treasury</option>
+                <option value="Other">Other / custom</option>
+              </select>
+            </div>
+            <div><label for="pmArmMargin">Margin / spread (%)</label><input id="pmArmMargin" type="number" min="0" step="0.01"></div>
+            <div><label for="pmNextResetDate">Next rate reset date</label><input id="pmNextResetDate" type="date"></div>
+            <div><label for="pmRateFloor">Rate floor (%)</label><input id="pmRateFloor" type="number" min="0" step="0.01"></div>
+            <div><label for="pmRateCap">Lifetime rate cap (%)</label><input id="pmRateCap" type="number" min="0" step="0.01"></div>
           </div>
         </div>
 
@@ -295,10 +314,16 @@
       hoa: 0,
       reserve: 0,
       otherExpenses: 0,
+      loanType: "fixed",
       loanBalance: 0,
       annualDebtService: 0,
       interestRate: 0,
-      maturityDate: ""
+      maturityDate: "",
+      armIndex: "",
+      armMargin: 0,
+      nextResetDate: "",
+      rateFloor: 0,
+      rateCap: 0
     };
   }
 
@@ -313,7 +338,8 @@
         ],
         otherIncome: 7200, vacancyAllowance: 4, taxes: 18000, insurance: 13000, repairs: 12000, utilities: 7000,
         management: 16000, legalAdmin: 3000, leasing: 2500, hoa: 0, reserve: 8000, otherExpenses: 2500,
-        loanBalance: 880000, annualDebtService: 69000, interestRate: 6.25, maturityDate: "2034-01-15"
+        loanType: "fixed", loanBalance: 880000, annualDebtService: 69000, interestRate: 6.25, maturityDate: "2034-01-15",
+        armIndex: "", armMargin: 0, nextResetDate: "", rateFloor: 0, rateCap: 0
       },
       {
         id: uid(), name: "Palm Retail Center", address: "Sample only", type: "Retail",
@@ -325,7 +351,8 @@
         ],
         otherIncome: 12000, vacancyAllowance: 2, taxes: 31000, insurance: 18000, repairs: 15000, utilities: 10000,
         management: 14000, legalAdmin: 4500, leasing: 6500, hoa: 0, reserve: 12000, otherExpenses: 3500,
-        loanBalance: 1420000, annualDebtService: 111000, interestRate: 6.75, maturityDate: "2033-06-01"
+        loanType: "arm", loanBalance: 1420000, annualDebtService: 111000, interestRate: 6.75, maturityDate: "2033-06-01",
+        armIndex: "SOFR", armMargin: 2.5, nextResetDate: "2028-06-01", rateFloor: 4.5, rateCap: 10
       }
     ];
   }
@@ -381,10 +408,16 @@
       hoa: numeric("pmHoa"),
       reserve: numeric("pmReserve"),
       otherExpenses: numeric("pmOtherExpenses"),
+      loanType: $("pmLoanType").value,
       loanBalance: numeric("pmLoanBalance"),
       annualDebtService: numeric("pmAnnualDebtService"),
       interestRate: numeric("pmInterestRate"),
-      maturityDate: $("pmMaturityDate").value
+      maturityDate: $("pmMaturityDate").value,
+      armIndex: $("pmArmIndex").value,
+      armMargin: numeric("pmArmMargin"),
+      nextResetDate: $("pmNextResetDate").value,
+      rateFloor: numeric("pmRateFloor"),
+      rateCap: numeric("pmRateCap")
     };
   }
 
@@ -412,10 +445,16 @@
     $("pmHoa").value = Number(p.hoa) || 0;
     $("pmReserve").value = Number(p.reserve) || 0;
     $("pmOtherExpenses").value = Number(p.otherExpenses) || 0;
+    $("pmLoanType").value = p.loanType || "fixed";
     $("pmLoanBalance").value = Number(p.loanBalance) || 0;
     $("pmAnnualDebtService").value = Number(p.annualDebtService) || 0;
     $("pmInterestRate").value = Number(p.interestRate) || 0;
     $("pmMaturityDate").value = p.maturityDate || "";
+    $("pmArmIndex").value = p.armIndex || "";
+    $("pmArmMargin").value = Number(p.armMargin) || 0;
+    $("pmNextResetDate").value = p.nextResetDate || "";
+    $("pmRateFloor").value = Number(p.rateFloor) || 0;
+    $("pmRateCap").value = Number(p.rateCap) || 0;
     $("pmUnitRows").innerHTML = "";
     (Array.isArray(p.units) && p.units.length ? p.units : [{ name: "Unit", count: 1, monthlyRent: 0, occupied: true }])
       .forEach(addUnitRow);
@@ -447,6 +486,8 @@
       <div><strong>Repairs + reserve</strong>${money(p.repairs + p.reserve)}</div>
       <div><strong>Management + administration</strong>${money(p.management + p.legalAdmin)}</div>
       <div><strong>Annual debt service</strong>${money(p.annualDebtService)}</div>
+      <div><strong>Loan structure</strong>${p.loanType === "arm" ? "Adjustable / floating" : "Fixed rate"}</div>
+      <div><strong>Next rate reset</strong>${p.loanType === "arm" ? (p.nextResetDate || "Not entered") : "Not applicable"}</div>
     `;
   }
 

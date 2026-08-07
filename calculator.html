@@ -72,7 +72,14 @@
             <input id="closingCostsPct" type="number" min="0" step="0.1" value="3">
           </div>
           <div>
-            <label for="interestRate">Interest rate (%)</label>
+            <label for="loanType">Loan type</label>
+            <select id="loanType">
+              <option value="fixed">Fixed rate</option>
+              <option value="arm">Adjustable / floating rate</option>
+            </select>
+          </div>
+          <div>
+            <label for="interestRate">Initial interest rate (%)</label>
             <input id="interestRate" type="number" min="0" step="0.01" value="6.5">
           </div>
           <div>
@@ -82,12 +89,62 @@
           <div>
             <label for="loanTermYears">Loan term / balloon due (years)</label>
             <input id="loanTermYears" type="number" min="1" step="1" value="10">
-            <span class="field-help">Used to show the balance due at the end of the stated term.</span>
+            <span class="field-help">Used to show the remaining balance due at the end of the stated term.</span>
           </div>
           <div>
             <label for="interestOnlyMonths">Interest-only period (months)</label>
             <input id="interestOnlyMonths" type="number" min="0" step="1" value="0">
           </div>
+        </div>
+
+        <div class="subsection arm-settings" id="armSettings" hidden>
+          <h3>Adjustable / Floating Rate Assumptions</h3>
+          <p class="metric-note">This is a stress-test model. The site does not predict future SOFR, Prime, Treasury, or other index rates.</p>
+          <div class="field-grid">
+            <div>
+              <label for="armIndexName">Reference index</label>
+              <select id="armIndexName">
+                <option value="SOFR">SOFR</option>
+                <option value="Prime">Prime</option>
+                <option value="Treasury">U.S. Treasury</option>
+                <option value="Other">Other / custom</option>
+              </select>
+            </div>
+            <div>
+              <label for="armFixedYears">Initial fixed-rate period (years)</label>
+              <input id="armFixedYears" type="number" min="0" step="0.25" value="5">
+            </div>
+            <div>
+              <label for="armIndexRate">Index rate assumed at first reset (%)</label>
+              <input id="armIndexRate" type="number" min="0" step="0.01" value="4.25">
+            </div>
+            <div>
+              <label for="armMargin">Margin / spread (%)</label>
+              <input id="armMargin" type="number" min="0" step="0.01" value="2.50">
+            </div>
+            <div>
+              <label for="armAdjustmentMonths">Adjustment frequency (months)</label>
+              <select id="armAdjustmentMonths">
+                <option value="1">Monthly</option>
+                <option value="3">Quarterly</option>
+                <option value="6">Semiannual</option>
+                <option value="12" selected>Annual</option>
+              </select>
+            </div>
+            <div>
+              <label for="armIndexAnnualChange">Index change assumption after first reset (points/year)</label>
+              <input id="armIndexAnnualChange" type="number" step="0.01" value="0.25">
+            </div>
+            <div>
+              <label for="armFloor">Interest-rate floor (%)</label>
+              <input id="armFloor" type="number" min="0" step="0.01" value="0">
+            </div>
+            <div>
+              <label for="armCap">Lifetime interest-rate cap (%)</label>
+              <input id="armCap" type="number" min="0" step="0.01" value="10">
+            </div>
+          </div>
+          <p class="field-help">Modeled reset rate = assumed index + margin, subject to floor and lifetime cap. After the first reset, the index changes by the annual stress assumption above. Payments are recalculated when the rate changes.</p>
         </div>
       </div>
 
@@ -155,6 +212,8 @@
       <div class="result"><div class="label">Gross rent multiplier</div><div class="value" id="grm">0.00</div></div>
       <div class="result"><div class="label">Price per unit</div><div class="value" id="pricePerUnit">$0</div></div>
       <div class="result"><div class="label">Balloon balance due at loan maturity</div><div class="value" id="balloonBalance">$0</div></div>
+      <div class="result"><div class="label">Financing structure</div><div class="value" id="financingStructure">Fixed rate</div></div>
+      <div class="result"><div class="label">Modeled first reset rate</div><div class="value" id="firstResetRate">N/A</div></div>
     </div>
 
     <div class="learning-box">
@@ -174,14 +233,14 @@
       <div class="result"><div class="label">Monthly scheduled payment</div><div class="value" id="monthlyPaymentSummary">$0</div></div>
       <div class="result"><div class="label">First-year principal</div><div class="value" id="firstYearPrincipal">$0</div></div>
       <div class="result"><div class="label">First-year interest</div><div class="value" id="firstYearInterest">$0</div></div>
-      <div class="result"><div class="label">Total interest if fully amortized</div><div class="value" id="totalInterest">$0</div></div>
+      <div class="result"><div class="label">Total interest under modeled rate path</div><div class="value" id="totalInterest">$0</div></div>
       <div class="result"><div class="label">Mortgage constant</div><div class="value" id="mortgageConstant">0.00%</div></div>
     </div>
 
     <h3 class="section-title">First 12 months</h3>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Month</th><th>Beginning balance</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
+        <thead><tr><th>Month</th><th>Rate</th><th>Beginning balance</th><th>Payment</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
         <tbody id="amortizationBody"></tbody>
       </table>
     </div>
@@ -189,7 +248,7 @@
     <h3 class="section-title">Annual loan summary</h3>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Year</th><th>Payments</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
+        <thead><tr><th>Year</th><th>Average rate</th><th>Payments</th><th>Interest</th><th>Principal</th><th>Ending balance</th></tr></thead>
         <tbody id="annualLoanBody"></tbody>
       </table>
     </div>
@@ -212,7 +271,7 @@
     <h3 class="section-title">10-Year Base Pro Forma</h3>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Year</th><th>Effective income</th><th>Operating expenses</th><th>NOI</th><th>Debt service</th><th>Cash flow</th><th>Loan balance</th></tr></thead>
+        <thead><tr><th>Year</th><th>Average loan rate</th><th>Effective income</th><th>Operating expenses</th><th>NOI</th><th>Debt service</th><th>Cash flow</th><th>Loan balance</th></tr></thead>
         <tbody id="proFormaBody"></tbody>
       </table>
     </div>
@@ -269,37 +328,69 @@
     });
   });
 
-  function monthlyPayment(principal, annualRatePct, amortYears) {
+  function monthlyPaymentForMonths(principal, annualRatePct, months) {
     if (principal <= 0) return 0;
-    const months = Math.max(1, Math.round(amortYears * 12));
+    const n = Math.max(1, Math.round(months));
     const rate = annualRatePct / 100 / 12;
-    if (rate === 0) return principal / months;
-    return principal * rate / (1 - Math.pow(1 + rate, -months));
+    if (rate === 0) return principal / n;
+    return principal * rate / (1 - Math.pow(1 + rate, -n));
   }
 
-  function buildSchedule(principal, annualRatePct, amortYears, interestOnlyMonths) {
+  function modeledRateForMonth(inputs, month) {
+    if (inputs.loanType !== "arm") return inputs.interestRate;
+    const fixedMonths = Math.max(0, Math.round(inputs.armFixedYears * 12));
+    if (month <= fixedMonths) return inputs.interestRate;
+
+    const frequency = Math.max(1, Math.round(inputs.armAdjustmentMonths));
+    const resetIndex = Math.floor((month - fixedMonths - 1) / frequency);
+    const monthsAfterFirstReset = resetIndex * frequency;
+    const modeledIndex = inputs.armIndexRate + inputs.armIndexAnnualChange * (monthsAfterFirstReset / 12);
+    let rate = modeledIndex + inputs.armMargin;
+
+    if (inputs.armFloor > 0) rate = Math.max(rate, inputs.armFloor);
+    if (inputs.armCap > 0) rate = Math.min(rate, inputs.armCap);
+    return Math.max(0, rate);
+  }
+
+  function buildSchedule(principal, inputs) {
     const rows = [];
-    const totalMonths = Math.max(1, Math.round(amortYears * 12));
-    const monthlyRate = annualRatePct / 100 / 12;
-    const amortPayment = monthlyPayment(principal, annualRatePct, amortYears);
+    const totalMonths = Math.max(1, Math.round(inputs.amortYears * 12));
+    const ioMonths = Math.max(0, Math.min(totalMonths, Math.round(inputs.interestOnlyMonths)));
     let balance = principal;
+    let payment = 0;
+    let priorRate = null;
 
     for (let month = 1; month <= totalMonths && balance > 0.005; month += 1) {
       const beginning = balance;
+      const annualRate = modeledRateForMonth(inputs, month);
+      const monthlyRate = annualRate / 100 / 12;
       const interest = beginning * monthlyRate;
-      let payment;
-      let principalPaid;
+      let principalPaid = 0;
 
-      if (month <= interestOnlyMonths) {
+      if (month <= ioMonths) {
         payment = interest;
-        principalPaid = 0;
       } else {
-        payment = Math.min(amortPayment, beginning + interest);
+        const remainingMonths = Math.max(1, totalMonths - month + 1);
+        const firstAmortizingMonth = month === ioMonths + 1;
+        const rateChanged = priorRate === null || Math.abs(annualRate - priorRate) > 0.0000001;
+        if (firstAmortizingMonth || rateChanged || payment <= 0) {
+          payment = monthlyPaymentForMonths(beginning, annualRate, remainingMonths);
+        }
+        payment = Math.min(payment, beginning + interest);
         principalPaid = Math.max(0, payment - interest);
       }
 
       balance = Math.max(0, beginning - principalPaid);
-      rows.push({ month, beginning, payment, interest, principal: principalPaid, ending: balance });
+      rows.push({
+        month,
+        annualRate,
+        beginning,
+        payment,
+        interest,
+        principal: principalPaid,
+        ending: balance
+      });
+      priorRate = annualRate;
     }
     return rows;
   }
@@ -360,10 +451,19 @@
       purchasePrice: num("purchasePrice"),
       downPaymentPct: num("downPaymentPct"),
       closingCostsPct: num("closingCostsPct"),
+      loanType: $("loanType").value,
       interestRate: num("interestRate"),
       amortYears: num("amortYears"),
       loanTermYears: num("loanTermYears"),
       interestOnlyMonths: num("interestOnlyMonths"),
+      armIndexName: $("armIndexName").value,
+      armFixedYears: num("armFixedYears"),
+      armIndexRate: num("armIndexRate"),
+      armMargin: num("armMargin"),
+      armAdjustmentMonths: num("armAdjustmentMonths"),
+      armIndexAnnualChange: num("armIndexAnnualChange"),
+      armFloor: num("armFloor"),
+      armCap: num("armCap"),
       units: unitData(),
       otherAnnualIncome: num("otherAnnualIncome"),
       vacancyPct: num("vacancyPct"),
@@ -401,7 +501,7 @@
     const loanAmount = Math.max(0, inputs.purchasePrice - downPayment);
     const closingCosts = inputs.purchasePrice * inputs.closingCostsPct / 100;
     const cashInvested = downPayment + closingCosts;
-    const schedule = buildSchedule(loanAmount, inputs.interestRate, inputs.amortYears, inputs.interestOnlyMonths);
+    const schedule = buildSchedule(loanAmount, inputs);
     const first12 = schedule.slice(0, 12);
     const annualDebtService = first12.reduce((sum, row) => sum + row.payment, 0);
     const annualCashFlow = noi - annualDebtService;
@@ -437,7 +537,10 @@
       expenseRatio: egi > 0 ? operatingExpenses / egi : NaN,
       grm: grossAnnualRent > 0 ? inputs.purchasePrice / grossAnnualRent : NaN,
       pricePerUnit: totalUnits > 0 ? inputs.purchasePrice / totalUnits : NaN,
-      balloonBalance
+      balloonBalance,
+      firstResetRate: inputs.loanType === "arm"
+        ? modeledRateForMonth(inputs, Math.max(1, Math.round(inputs.armFixedYears * 12) + 1))
+        : NaN
     };
   }
 
@@ -466,6 +569,12 @@
     $("grm").textContent = decimal(metrics.grm);
     $("pricePerUnit").textContent = money(metrics.pricePerUnit);
     $("balloonBalance").textContent = money(metrics.balloonBalance);
+    $("financingStructure").textContent = inputs.loanType === "arm"
+      ? `Adjustable / floating (${inputs.armIndexName} + ${inputs.armMargin.toFixed(2)}%)`
+      : "Fixed rate";
+    $("firstResetRate").textContent = inputs.loanType === "arm"
+      ? metrics.firstResetRate.toFixed(2) + "%"
+      : "N/A";
 
     setResultClass("dscr", Number.isFinite(metrics.dscr) ? (metrics.dscr >= 1.25 ? "good" : metrics.dscr >= 1 ? "caution" : "risk") : "");
     setResultClass("annualCashFlow", metrics.annualCashFlow >= 0 ? "good" : "risk");
@@ -493,7 +602,7 @@
     $("mortgageConstant").textContent = pct(mortgageConstant);
 
     $("amortizationBody").innerHTML = first12.map((row) => `
-      <tr><td>${row.month}</td><td>${money(row.beginning)}</td><td>${money(row.payment)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
+      <tr><td>${row.month}</td><td>${row.annualRate.toFixed(2)}%</td><td>${money(row.beginning)}</td><td>${money(row.payment)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
     `).join("");
 
     const annualRows = [];
@@ -503,6 +612,7 @@
       if (!rows.length) break;
       annualRows.push({
         year,
+        averageRate: rows.reduce((sum, row) => sum + row.annualRate, 0) / rows.length,
         payments: rows.reduce((sum, row) => sum + row.payment, 0),
         interest: rows.reduce((sum, row) => sum + row.interest, 0),
         principal: rows.reduce((sum, row) => sum + row.principal, 0),
@@ -511,7 +621,7 @@
     }
 
     $("annualLoanBody").innerHTML = annualRows.map((row) => `
-      <tr><td>${row.year}</td><td>${money(row.payments)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
+      <tr><td>${row.year}</td><td>${row.averageRate.toFixed(2)}%</td><td>${money(row.payments)}</td><td>${money(row.interest)}</td><td>${money(row.principal)}</td><td>${money(row.ending)}</td></tr>
     `).join("");
   }
 
@@ -570,14 +680,17 @@
       const debtService = scheduleRows.reduce((sum, row) => sum + row.payment, 0);
       const cashFlow = noi - debtService;
       const endingBalance = scheduleRows.length ? scheduleRows[scheduleRows.length - 1].ending : 0;
-      rows.push({ year, egi, expenses, noi, debtService, cashFlow, endingBalance });
+      const averageRate = scheduleRows.length
+        ? scheduleRows.reduce((sum, row) => sum + row.annualRate, 0) / scheduleRows.length
+        : 0;
+      rows.push({ year, averageRate, egi, expenses, noi, debtService, cashFlow, endingBalance });
       yearlyCashFlows.push(cashFlow);
       yearlyNoi.push(noi);
       yearlyBalances.push(endingBalance);
     }
 
     $("proFormaBody").innerHTML = rows.map((row) => `
-      <tr><td>${row.year}</td><td>${money(row.egi)}</td><td>${money(row.expenses)}</td><td>${money(row.noi)}</td><td>${money(row.debtService)}</td><td>${money(row.cashFlow)}</td><td>${money(row.endingBalance)}</td></tr>
+      <tr><td>${row.year}</td><td>${row.averageRate.toFixed(2)}%</td><td>${money(row.egi)}</td><td>${money(row.expenses)}</td><td>${money(row.noi)}</td><td>${money(row.debtService)}</td><td>${money(row.cashFlow)}</td><td>${money(row.endingBalance)}</td></tr>
     `).join("");
 
     function exitAnalysis(holdYears) {
@@ -610,7 +723,12 @@
     $("equityMultiple10").textContent = ten ? decimal(ten.equityMultiple) + "x" : "N/A";
   }
 
+  function updateArmVisibility() {
+    $("armSettings").hidden = $("loanType").value !== "arm";
+  }
+
   function calculateAll() {
+    updateArmVisibility();
     const inputs = propertyInputs();
     const metrics = calculateMetrics(inputs);
     displayMetrics(inputs, metrics);
@@ -623,7 +741,9 @@
   function restoreInputs(data) {
     const ids = [
       "propertyName", "propertyType", "purchasePrice", "downPaymentPct", "closingCostsPct",
-      "interestRate", "amortYears", "loanTermYears", "interestOnlyMonths", "otherAnnualIncome",
+      "loanType", "interestRate", "amortYears", "loanTermYears", "interestOnlyMonths",
+      "armIndexName", "armFixedYears", "armIndexRate", "armMargin", "armAdjustmentMonths",
+      "armIndexAnnualChange", "armFloor", "armCap", "otherAnnualIncome",
       "vacancyPct", "propertyTaxes", "insurance", "repairs", "utilities", "adminLegal",
       "leasingAdvertising", "hoa", "managementPct", "capexReserve", "otherExpenses",
       "annualRentGrowth", "annualExpenseGrowth", "exitCapRate", "sellingCostsPct"
@@ -644,10 +764,19 @@
       purchasePrice: 1000000,
       downPaymentPct: 25,
       closingCostsPct: 3,
+      loanType: "fixed",
       interestRate: 6.5,
       amortYears: 25,
       loanTermYears: 10,
       interestOnlyMonths: 0,
+      armIndexName: "SOFR",
+      armFixedYears: 5,
+      armIndexRate: 4.25,
+      armMargin: 2.5,
+      armAdjustmentMonths: 12,
+      armIndexAnnualChange: 0.25,
+      armFloor: 0,
+      armCap: 10,
       units: [
         { name: "1 Bedroom", units: 8, rent: 1250 },
         { name: "2 Bedroom", units: 4, rent: 1600 }
@@ -699,7 +828,10 @@
   $("resetButton").addEventListener("click", resetSample);
 
   document.querySelectorAll("input, select").forEach((input) => {
-    if (!input.closest(".unit-row")) input.addEventListener("input", calculateAll);
+    if (!input.closest(".unit-row")) {
+      input.addEventListener("input", calculateAll);
+      input.addEventListener("change", calculateAll);
+    }
   });
 
   resetSample();

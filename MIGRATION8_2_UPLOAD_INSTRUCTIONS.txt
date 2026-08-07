@@ -1,0 +1,37 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.2 ARM / FLOATING RATE FINANCING
+
+UPLOAD
+1. Download and unzip property-investment-digest-migration8-2-arm-financing.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Select every file inside the extracted Migration 8.2 folder.
+5. Drag the files into GitHub.
+6. Commit message:
+   Add adjustable rate financing
+7. Click Commit changes.
+8. Wait for Pages build and deployment.
+
+NO GOVERNMENT DATA UPDATE IS REQUIRED.
+
+TEST FULL PROPERTY CALCULATOR
+https://tonyhernandezusa-code.github.io/property-investment-digest/calculator.html
+- Select Adjustable / floating rate.
+- Confirm the ARM assumptions section appears.
+- Try initial rate 6.00%, fixed 5 years, index 4.25%, margin 2.50%, annual index increase 0.25 points, cap 10%.
+- Check the annual loan summary and 10-year pro forma. Rates and debt service should change after the fixed period.
+
+TEST HOTEL ANALYSIS
+https://tonyhernandezusa-code.github.io/property-investment-digest/hotel-analysis.html
+- Select Adjustable / floating rate.
+- Confirm the ARM assumptions section appears.
+- Check financing structure, first reset rate, 10-year rate path, debt service and balloon.
+
+TEST PROPERTY MANAGER
+https://tonyhernandezusa-code.github.io/property-investment-digest/property-manager.html
+- Open or create a property.
+- In Financing, select Adjustable / floating rate.
+- Record the index, margin, next reset date, floor and cap.
+- Save the property and reopen it to confirm the fields remain saved.
+
+IMPORTANT
+The ARM model is a transparent stress-test based on user assumptions. It is not a forecast of future benchmark rates and does not replace the actual loan documents.

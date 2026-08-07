@@ -279,3 +279,13 @@
   header nav, .toolbar { display:none !important; }
   .card { break-inside:avoid; }
 }
+
+/* Migration 8.2: adjustable / floating-rate financing */
+.arm-settings[hidden] { display:none !important; }
+.arm-settings {
+  margin-top:16px;
+  padding:14px;
+  border:1px solid #d7dee8;
+  border-radius:10px;
+  background:#f8fafc;
+}

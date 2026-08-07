@@ -93,13 +93,49 @@
     <section class="card">
       <h2>Financing</h2>
       <div class="input-grid">
+        <label>Loan type
+          <select data-field="loanType">
+            <option value="fixed">Fixed rate</option>
+            <option value="arm">Adjustable / floating rate</option>
+          </select>
+        </label>
         <label>Loan amount <input data-field="loan" type="number" min="0" step="1000" value="9750000"></label>
-        <label>Interest rate % <input data-field="rate" type="number" min="0" step="0.01" value="6.75"></label>
+        <label>Initial interest rate % <input data-field="rate" type="number" min="0" step="0.01" value="6.75"></label>
         <label>Amortization period (years) <input data-field="amortYears" type="number" min="1" step="1" value="25"></label>
         <label>Loan term / balloon due (years) <input data-field="loanTermYears" type="number" min="1" step="1" value="10"></label>
-        <label>Interest-only period (years) <input data-field="ioYears" type="number" min="0" step="1" value="0"></label>
+        <label>Interest-only period (years) <input data-field="ioYears" type="number" min="0" step="0.25" value="0"></label>
       </div>
-      <p class="metric-note"><strong>Balloon modeling:</strong> the scheduled payment is based on the stated amortization period, but the remaining principal becomes due at the end of the loan term. If the balloon occurs during the 10-year projection, the model shows it as an additional cash requirement and assumes it is paid from equity; no refinance is assumed.</p>
+
+      <div class="subsection arm-settings" id="hotelArmSettings" hidden>
+        <h3>Adjustable / Floating Rate Assumptions</h3>
+        <div class="input-grid">
+          <label>Reference index
+            <select data-field="armIndexName">
+              <option value="SOFR">SOFR</option>
+              <option value="Prime">Prime</option>
+              <option value="Treasury">U.S. Treasury</option>
+              <option value="Other">Other / custom</option>
+            </select>
+          </label>
+          <label>Initial fixed-rate period (years) <input data-field="armFixedYears" type="number" min="0" step="0.25" value="5"></label>
+          <label>Index rate assumed at first reset % <input data-field="armIndexRate" type="number" min="0" step="0.01" value="4.25"></label>
+          <label>Margin / spread % <input data-field="armMargin" type="number" min="0" step="0.01" value="2.50"></label>
+          <label>Adjustment frequency
+            <select data-field="armAdjustmentMonths">
+              <option value="1">Monthly</option>
+              <option value="3">Quarterly</option>
+              <option value="6">Semiannual</option>
+              <option value="12" selected>Annual</option>
+            </select>
+          </label>
+          <label>Index change assumption after first reset (points/year) <input data-field="armIndexAnnualChange" type="number" step="0.01" value="0.25"></label>
+          <label>Interest-rate floor % <input data-field="armFloor" type="number" min="0" step="0.01" value="0"></label>
+          <label>Lifetime interest-rate cap % <input data-field="armCap" type="number" min="0" step="0.01" value="10"></label>
+        </div>
+        <p class="metric-note">Modeled reset rate = assumed index + margin, subject to floor and lifetime cap. This is a stress-test assumption, not a prediction of future index rates.</p>
+      </div>
+
+      <p class="metric-note"><strong>Balloon modeling:</strong> the remaining principal becomes due at the end of the loan term. If the balloon occurs during the 10-year projection, the model shows it as an additional cash requirement and assumes it is paid from equity; no refinance is assumed.</p>
     </section>
 
     <section class="card">
@@ -134,7 +170,7 @@
     <h2>10-Year Illustrative Pro Forma</h2>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Year</th><th>Occupancy</th><th>ADR</th><th>Room Revenue</th><th>Total Revenue</th><th>NOI</th><th>Debt Service</th><th>Balloon Due</th><th>Cash Flow</th></tr></thead>
+        <thead><tr><th>Year</th><th>Avg. Loan Rate</th><th>Occupancy</th><th>ADR</th><th>Room Revenue</th><th>Total Revenue</th><th>NOI</th><th>Debt Service</th><th>Balloon Due</th><th>Cash Flow</th></tr></thead>
         <tbody id="proFormaBody"></tbody>
       </table>
     </div>
@@ -153,6 +189,7 @@
       <p><strong>DSCR:</strong> NOI divided by annual debt service.</p>
       <p><strong>Debt yield:</strong> NOI divided by loan amount.</p>
       <p><strong>Balloon payment:</strong> The unpaid principal balance due when the loan term ends before the stated amortization period has fully paid off the loan.</p>
+      <p><strong>Adjustable / floating rate:</strong> A loan whose interest rate can change after an initial fixed period or at stated reset intervals. This model uses user-entered index, margin, floor, cap and rate-change assumptions.</p>
     </div>
   </section>
 </main>
@@ -174,26 +211,72 @@ const num=v=>Number.isFinite(v)?numFmt.format(v):"N/A";
 const pct=v=>Number.isFinite(v)?v.toFixed(2)+"%":"N/A";
 const card=(label,value,note="")=>`<div class="result"><div class="label">${label}</div><div class="value">${value}</div>${note?`<div class="metric-note">${note}</div>`:""}</div>`;
 
-function annualDebtService(loan,rate,years,interestOnly){
-  if(loan<=0) return 0;
-  if(interestOnly) return loan*(rate/100);
-  const r=rate/100/12,n=Math.max(1,years*12);
-  if(r===0) return loan/n*12;
-  const p=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-  return p*12;
+function monthlyPaymentForMonths(principal,annualRatePct,months){
+  if(principal<=0) return 0;
+  const n=Math.max(1,Math.round(months)),r=annualRatePct/100/12;
+  if(r===0) return principal/n;
+  return principal*r/(1-Math.pow(1+r,-n));
 }
-function amortizingBalance(loan,rate,years,yearsElapsed){
-  if(loan<=0) return 0;
-  const r=rate/100/12,n=Math.max(1,years*12),k=Math.min(Math.max(0,yearsElapsed*12),n);
-  if(r===0) return Math.max(0,loan*(1-k/n));
-  const payment=loan*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-  return Math.max(0,loan*Math.pow(1+r,k)-payment*(Math.pow(1+r,k)-1)/r);
+function hotelLoanInputs(){
+  return {
+    loanType:document.querySelector('[data-field="loanType"]').value,
+    initialRate:val("rate"),
+    amortYears:val("amortYears"),
+    termYears:Math.max(1,val("loanTermYears")),
+    ioYears:Math.max(0,val("ioYears")),
+    armIndexName:document.querySelector('[data-field="armIndexName"]').value,
+    armFixedYears:val("armFixedYears"),
+    armIndexRate:val("armIndexRate"),
+    armMargin:val("armMargin"),
+    armAdjustmentMonths:Math.max(1,val("armAdjustmentMonths")),
+    armIndexAnnualChange:val("armIndexAnnualChange"),
+    armFloor:val("armFloor"),
+    armCap:val("armCap")
+  };
 }
-function balanceAfterYear(loan,rate,amortYears,ioYears,year){
-  if(loan<=0) return 0;
-  if(year<=0) return loan;
-  if(year<=ioYears) return loan;
-  return amortizingBalance(loan,rate,amortYears,year-ioYears);
+function hotelModeledRate(inputs,month){
+  if(inputs.loanType!=="arm") return inputs.initialRate;
+  const fixedMonths=Math.max(0,Math.round(inputs.armFixedYears*12));
+  if(month<=fixedMonths) return inputs.initialRate;
+  const resetIndex=Math.floor((month-fixedMonths-1)/inputs.armAdjustmentMonths);
+  const monthsAfterFirstReset=resetIndex*inputs.armAdjustmentMonths;
+  const modeledIndex=inputs.armIndexRate+inputs.armIndexAnnualChange*(monthsAfterFirstReset/12);
+  let rate=modeledIndex+inputs.armMargin;
+  if(inputs.armFloor>0) rate=Math.max(rate,inputs.armFloor);
+  if(inputs.armCap>0) rate=Math.min(rate,inputs.armCap);
+  return Math.max(0,rate);
+}
+function buildHotelLoanSchedule(inputs){
+  const rows=[],loan=val("loan"),totalMonths=Math.max(1,Math.round(inputs.amortYears*12));
+  const ioMonths=Math.max(0,Math.min(totalMonths,Math.round(inputs.ioYears*12)));
+  let balance=loan,payment=0,priorRate=null;
+  for(let month=1;month<=totalMonths&&balance>0.005;month++){
+    const beginning=balance,annualRate=hotelModeledRate(inputs,month),mr=annualRate/100/12;
+    const interest=beginning*mr;
+    let principal=0;
+    if(month<=ioMonths){
+      payment=interest;
+    }else{
+      const remaining=Math.max(1,totalMonths-month+1);
+      const firstAmortizing=month===ioMonths+1;
+      const rateChanged=priorRate===null||Math.abs(annualRate-priorRate)>0.0000001;
+      if(firstAmortizing||rateChanged||payment<=0) payment=monthlyPaymentForMonths(beginning,annualRate,remaining);
+      payment=Math.min(payment,beginning+interest);
+      principal=Math.max(0,payment-interest);
+    }
+    balance=Math.max(0,beginning-principal);
+    rows.push({month,annualRate,beginning,payment,interest,principal,ending:balance});
+    priorRate=annualRate;
+  }
+  return rows;
+}
+function loanYearSummary(schedule,year){
+  const rows=schedule.slice((year-1)*12,year*12);
+  return {
+    debtService:rows.reduce((sum,row)=>sum+row.payment,0),
+    averageRate:rows.length?rows.reduce((sum,row)=>sum+row.annualRate,0)/rows.length:0,
+    endingBalance:rows.length?rows[rows.length-1].ending:0
+  };
 }
 function metrics(occ,adr,projectionFactor=1, otherRevenueFactor=1){
   const rooms=val("rooms"),available=rooms*365,occupied=available*(occ/100);
@@ -222,14 +305,20 @@ function irr(cashflows){
   return (low+high)/2;
 }
 
+function updateHotelArmVisibility(){
+  document.getElementById("hotelArmSettings").hidden=document.querySelector('[data-field="loanType"]').value!=="arm";
+}
 function calculate(){
+  updateHotelArmVisibility();
   const occ=Math.min(100,Math.max(0,val("occupancy"))),adr=val("adr"),base=metrics(occ,adr);
-  const loan=val("loan"),rate=val("rate"),amort=val("amortYears"),ioYears=Math.max(0,val("ioYears"));
-  const loanTerm=Math.max(1,val("loanTermYears"));
-  const debt=annualDebtService(loan,rate,amort,ioYears>=1);
-  const balloonBalance=balanceAfterYear(loan,rate,amort,ioYears,loanTerm);
-  const balanceYear5=loanTerm<=5?0:balanceAfterYear(loan,rate,amort,ioYears,5);
-  const balanceYear10=loanTerm<=10?0:balanceAfterYear(loan,rate,amort,ioYears,10);
+  const loan=val("loan"),loanInputs=hotelLoanInputs(),loanTerm=loanInputs.termYears;
+  const schedule=buildHotelLoanSchedule(loanInputs);
+  const year1Loan=loanYearSummary(schedule,1);
+  const debt=year1Loan.debtService;
+  const termMonth=Math.min(schedule.length,Math.max(1,Math.round(loanTerm*12)));
+  const balloonBalance=schedule.length&&termMonth>0?schedule[termMonth-1].ending:0;
+  const balanceYear5=loanTerm<=5?0:loanYearSummary(schedule,5).endingBalance;
+  const balanceYear10=loanTerm<=10?0:loanYearSummary(schedule,10).endingBalance;
   const equity=Math.max(0,val("price")-loan);
   const dscr=debt>0?base.noi/debt:null;
   const fixedForBreakEven=(val("payroll")+val("utilities")+val("repairs")+val("marketing")+val("admin")+val("otherOpEx")+val("taxes")+val("insurance")+val("otherFixed"));
@@ -255,7 +344,10 @@ function calculate(){
     card("NOI margin",pct(base.totalRevenue?base.noi/base.totalRevenue*100:0)),
     card("Cap rate",pct(val("price")?base.noi/val("price")*100:0)),
     card("Price per key",money(val("rooms")?val("price")/val("rooms"):0)),
-    card("Annual debt service — Year 1",money(debt),ioYears>=1?"Interest-only debt service shown":"Amortizing debt service"),
+    card("Financing structure",loanInputs.loanType==="arm"?`Adjustable / floating (${loanInputs.armIndexName} + ${loanInputs.armMargin.toFixed(2)}%)`:"Fixed rate"),
+    card("Average loan rate — Year 1",pct(year1Loan.averageRate)),
+    card("Modeled first reset rate",loanInputs.loanType==="arm"?pct(hotelModeledRate(loanInputs,Math.max(1,Math.round(loanInputs.armFixedYears*12)+1))):"N/A"),
+    card("Annual debt service — Year 1",money(debt),loanInputs.ioYears>=1?"Interest-only debt service may apply":"Amortizing debt service"),
     card("Loan term / balloon year",loanTerm.toFixed(0)+" years"),
     card("Balloon balance due at maturity",money(balloonBalance),loanTerm<amort+ioYears?"Remaining principal due at loan maturity":"Loan is fully amortized by maturity"),
     card("Estimated balance after Year 5",money(balanceYear5),loanTerm<=5?"Balloon assumed paid by this point":"Before any sale or refinance"),
@@ -286,12 +378,13 @@ function calculate(){
     const otherFactor=Math.pow(1+otherGrowth,year-1);
     const m=metrics(yOcc,yAdr,expFactor,otherFactor);
     const beforeMaturity=year<=loanTerm;
-    const yearDebt=beforeMaturity?annualDebtService(loan,rate,amort,year<=ioYears):0;
+    const loanYear=loanYearSummary(schedule,year);
+    const yearDebt=beforeMaturity?loanYear.debtService:0;
     const balloonDue=year===Math.ceil(loanTerm)?balloonBalance:0;
     const cf=m.noi-yearDebt-balloonDue;
     cashflows.push(cf);
     if(cf>=0) totalDistributions+=cf; else totalEquityInvested+=Math.abs(cf);
-    rows+=`<tr><td>${year}</td><td>${pct(yOcc)}</td><td>${money(yAdr)}</td><td>${money(m.roomRevenue)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${money(yearDebt)}</td><td>${money(balloonDue)}</td><td>${money(cf)}</td></tr>`;
+    rows+=`<tr><td>${year}</td><td>${pct(loanYear.averageRate)}</td><td>${pct(yOcc)}</td><td>${money(yAdr)}</td><td>${money(m.roomRevenue)}</td><td>${money(m.totalRevenue)}</td><td>${money(m.noi)}</td><td>${money(yearDebt)}</td><td>${money(balloonDue)}</td><td>${money(cf)}</td></tr>`;
   }
   $("proFormaBody").innerHTML=rows;
   const year11Occ=Math.min(100,Math.max(0,occ+val("occupancyChange")*10));
@@ -300,7 +393,7 @@ function calculate(){
   const exitCap=val("exitCap")/100;
   const grossSale=exitCap>0?year11.noi/exitCap:0;
   const netSale=grossSale*(1-val("sellingCostPct")/100);
-  const balance=loanTerm<=10?0:balanceAfterYear(loan,rate,amort,ioYears,10);
+  const balance=loanTerm<=10?0:loanYearSummary(schedule,10).endingBalance;
   const saleEquity=Math.max(0,netSale-balance);
   cashflows[10]+=saleEquity;
   totalDistributions+=saleEquity;
@@ -317,7 +410,7 @@ function calculate(){
     card("Illustrative 10-year IRR",projectIrr!==null?pct(projectIrr*100):"N/A")
   ].join("");
 }
-fields.forEach(f=>f.addEventListener("input",calculate));
+fields.forEach(f=>{f.addEventListener("input",calculate);f.addEventListener("change",calculate);});
 $("saveButton").addEventListener("click",()=>{const data={};fields.forEach(f=>data[f.dataset.field]=f.value);localStorage.setItem("pid_hotel_analysis",JSON.stringify(data));alert("Hotel analysis inputs saved in this browser.");});
 $("loadButton").addEventListener("click",()=>{const raw=localStorage.getItem("pid_hotel_analysis");if(!raw){alert("No saved hotel inputs were found.");return;}const data=JSON.parse(raw);fields.forEach(f=>{if(data[f.dataset.field]!==undefined)f.value=data[f.dataset.field];});calculate();});
 $("printButton").addEventListener("click",()=>window.print());
