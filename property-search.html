@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Authorized Property Search | Property Investment Digest</title>
+<meta name="description" content="Authorized property lookup for permitted users.">
+<link rel="stylesheet" href="styles.css">
+<style>
+.auth-shell{max-width:760px;margin:20px auto}
+.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.auth-grid input{width:100%;box-sizing:border-box;padding:10px;border:1px solid #ccd3db;border-radius:8px}
+.auth-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.search-panel{display:none}
+.search-panel.active{display:block}
+.status-line{font-size:13px;color:#667085;margin-top:8px}
+.error-line{font-size:13px;color:#b42318;margin-top:8px}
+.lookup-input{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.lookup-input label{flex:1;min-width:260px}
+.lookup-input input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccd3db;border-radius:8px;font-size:16px}
+.result-section{margin-top:16px}
+.result-section h3{margin-bottom:8px}
+.property-columns{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.data-card{border:1px solid #e3e7ec;border-radius:10px;padding:12px;background:#fff}
+.data-card h3{font-size:15px;margin:0 0 8px}
+.data-row{font-size:13px;line-height:1.55;margin:2px 0}
+.map-frame{width:100%;height:280px;border:0;border-radius:10px}
+#comp-hover-panel{position:fixed;display:none;z-index:2000;width:300px;background:#fff;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:10px;pointer-events:none}
+#comp-hover-panel iframe{width:100%;height:170px;border:0;border-radius:6px}
+#comp-hover-panel .comp-info{font-size:12px;margin-top:8px;line-height:1.5}
+.access-badge{display:inline-block;padding:4px 9px;border-radius:999px;background:#eef4ff;color:#1f4e79;font-size:12px;font-weight:700}
+@media(max-width:650px){.auth-grid{grid-template-columns:1fr}.lookup-input{display:block}.lookup-input button{width:100%;margin-top:8px}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<div class="brand">Property Investment Digest</div>
+<p class="tagline">Research. Analyze. Understand.</p>
+<nav>
+<a href="index.html">Home</a>
+<a href="property-search.html">Property Search</a>
+<a href="investment-map.html">Investment Map</a>
+<a href="market-research.html">Market Research</a>
+<a href="government-data.html">Government Data</a>
+<a href="labor-housing.html">Labor &amp; HPI</a>
+<a href="rent-disaster.html">Rent &amp; Disaster Context</a>
+<a href="hotel-market.html">Hotel Market</a>
+<a href="hotel-analysis.html">Hotel Analysis</a>
+<a href="home-mortgage.html">Home Mortgage</a>
+<a href="home-affordability.html">Affordability</a>
+<a href="calculator.html">Full Calculators</a>
+<a href="property-manager.html">Property Manager</a>
+<a href="learning.html">Learning Center</a>
+<a href="methodology.html">Methodology</a>
+<a href="sources.html">Data Sources</a>
+<a href="disclaimer.html">Disclaimer</a>
+</nav>
+</div>
+</header>
+
+<main>
+<section class="hero">
+<span class="access-badge">AUTHORIZED ACCESS</span>
+<h1>Professional Property Search</h1>
+<p>Address-level property research for specifically authorized users. Property data is requested only after successful sign-in.</p>
+</section>
+
+<section class="card auth-shell" id="authPanel">
+<h2>Authorized User Sign-In</h2>
+<p class="metric-note">There is no public sign-up on this page. Accounts must be created or approved by the site administrator.</p>
+<div class="auth-grid">
+<label>Email
+<input id="authEmail" type="email" autocomplete="username" placeholder="Authorized email">
+</label>
+<label>Password
+<input id="authPassword" type="password" autocomplete="current-password" placeholder="Password">
+</label>
+</div>
+<div class="auth-actions">
+<button class="button" id="loginButton" type="button">Sign In</button>
+<span class="status-line" id="authStatus"></span>
+</div>
+<div class="error-line" id="authError"></div>
+</section>
+
+<section class="card search-panel" id="searchPanel">
+<div class="toolbar">
+<span id="signedInAs" class="status-line"></span>
+<button class="button secondary" id="logoutButton" type="button">Sign Out</button>
+</div>
+<h2>Property Search</h2>
+<p class="metric-note">Enter a complete street address. Available fields vary by county, recorder coverage, ATTOM product access, and account rights.</p>
+<div class="lookup-input">
+<label>Full street address
+<input id="addressInput" type="text" placeholder="123 Main St, Miami, FL 33101">
+</label>
+<button class="button" id="searchButton" type="button">Search Property</button>
+</div>
+<div id="recentSearches" class="status-line"></div>
+<div id="searchStatus" class="status-line"></div>
+<div id="searchError" class="error-line"></div>
+<div id="result"></div>
+</section>
+
+<section class="card">
+<h2>Access &amp; Data Notice</h2>
+<p>This page is designed for authorized internal or licensed use. The login controls the user interface, and the Cloudflare Worker must also validate the signed-in user's Firebase ID token before returning protected property data. Do not rely on a browser-only password gate.</p>
+<p>Foreclosure/pre-foreclosure search is not enabled here because the prior implementation indicated that ATTOM treated that material as a separate premium product. The search page should only expose fields and products covered by the active license.</p>
+</section>
+</main>
+
+<div id="comp-hover-panel"></div>
+
+<footer><strong>Educational research tool.</strong> Property, assessment, ownership, mortgage, AVM, school and comparable-sale fields may be incomplete or outdated. Verify important information with the appropriate public office, lender, school district, licensed provider or other primary source.</footer>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script>
+(function(){
+"use strict";
+
+var firebaseConfig = {
+  apiKey: "AIzaSyDjpFZwtHQ5HxYLTyMzO0XFDMZqq1CwFV8",
+  authDomain: "property-manager-9455a.firebaseapp.com",
+  projectId: "property-manager-9455a",
+  storageBucket: "property-manager-9455a.firebasestorage.app",
+  messagingSenderId: "986237651798",
+  appId: "1:986237651798:web:f42e0af8fce40b180064f7"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+
+// Existing ATTOM Worker. Server-side authentication MUST be added to this Worker
+// using the supplied WORKER_AUTH_PATCH.js before this is treated as protected.
+var WORKER_URL = "https://attom-proxy.tonyhernandezusa.workers.dev";
+
+var authPanel = document.getElementById("authPanel");
+var searchPanel = document.getElementById("searchPanel");
+var authStatus = document.getElementById("authStatus");
+var authError = document.getElementById("authError");
+var searchStatus = document.getElementById("searchStatus");
+var searchError = document.getElementById("searchError");
+var result = document.getElementById("result");
+
+function esc(value){
+  return String(value == null ? "" : value)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function money(value){
+  if(value === undefined || value === null || value === "") return "";
+  var n = Number(value);
+  return Number.isFinite(n) ? "$" + n.toLocaleString() : "";
+}
+function row(label,value){
+  if(value === undefined || value === null || value === "") return "";
+  return "<div class='data-row'><strong>"+esc(label)+":</strong> "+esc(value)+"</div>";
+}
+function saveRecent(address){
+  var arr=[];
+  try{arr=JSON.parse(localStorage.getItem("pid_recent_property_searches")||"[]");}catch(e){}
+  arr=arr.filter(function(x){return x.toLowerCase()!==address.toLowerCase();});
+  arr.unshift(address); arr=arr.slice(0,5);
+  localStorage.setItem("pid_recent_property_searches",JSON.stringify(arr));
+  renderRecent();
+}
+function renderRecent(){
+  var el=document.getElementById("recentSearches"),arr=[];
+  try{arr=JSON.parse(localStorage.getItem("pid_recent_property_searches")||"[]");}catch(e){}
+  if(!arr.length){el.innerHTML="";return;}
+  el.innerHTML="<strong>Recent:</strong> "+arr.map(function(a,i){
+    return "<button type='button' class='link-button' data-recent='"+i+"'>"+esc(a)+"</button>";
+  }).join(" ");
+  el.querySelectorAll("[data-recent]").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      document.getElementById("addressInput").value=arr[Number(btn.getAttribute("data-recent"))];
+      searchProperty();
+    });
+  });
+}
+async function authorizedFetch(path){
+  var user=auth.currentUser;
+  if(!user) throw new Error("Sign in is required.");
+  var token=await user.getIdToken();
+  var response=await fetch(WORKER_URL+path,{
+    headers:{"Authorization":"Bearer "+token,"Accept":"application/json"}
+  });
+  var text=await response.text();
+  var data;
+  try{data=JSON.parse(text);}catch(e){data={error:text||("HTTP "+response.status)};}
+  if(response.status===401||response.status===403){
+    throw new Error(data.error||"This account is not authorized for property search.");
+  }
+  if(!response.ok) throw new Error(data.error||("Search service returned HTTP "+response.status+"."));
+  return data;
+}
+
+function showCompPreview(event,row){
+  var panel=document.getElementById("comp-hover-panel");
+  var addr=row.getAttribute("data-addr");
+  panel.innerHTML="<iframe src='https://maps.google.com/maps?q="+encodeURIComponent(addr)+"&z=19&t=k&output=embed' loading='lazy'></iframe>"+
+    "<div class='comp-info'><strong>"+esc(addr)+"</strong><br>Sale Price: "+esc(row.getAttribute("data-price"))+
+    " &middot; Sale Date: "+esc(row.getAttribute("data-date"))+"<br>Beds/Baths: "+esc(row.getAttribute("data-beds"))+
+    " &middot; Sq Ft: "+esc(row.getAttribute("data-sqft"))+" &middot; Distance: "+esc(row.getAttribute("data-dist"))+"</div>";
+  panel.style.display="block"; positionCompPreview(event);
+}
+function positionCompPreview(event){
+  var p=document.getElementById("comp-hover-panel"); if(p.style.display!=="block")return;
+  var w=300,h=250,x=event.clientX+16,y=event.clientY+16;
+  if(x+w>window.innerWidth)x=event.clientX-w-16;
+  if(y+h>window.innerHeight)y=event.clientY-h-16;
+  p.style.left=Math.max(8,x)+"px";p.style.top=Math.max(8,y)+"px";
+}
+function hideCompPreview(){document.getElementById("comp-hover-panel").style.display="none";}
+
+async function loadNeighborhood(address){
+  var el=document.getElementById("neighborhoodData");
+  if(!el)return;
+  el.innerHTML="<h3>Neighborhood Data</h3><span class='status-line'>Loading...</span>";
+  try{
+    var d=await authorizedFetch("/neighborhood-data?address="+encodeURIComponent(address));
+    var html="<h3>Neighborhood Data</h3>";
+    if(d.rentalVacancyRatePercent!=null && Number(d.rentalVacancyRatePercent)>=0) html+=row("Rental vacancy rate",Number(d.rentalVacancyRatePercent).toFixed(1)+"%");
+    if(d.medianGrossRent!=null && Number(d.medianGrossRent)>=0) html+=row("Median gross rent",money(d.medianGrossRent));
+    if(d.tract) html+=row("Census tract",d.tract);
+    el.innerHTML=html;
+  }catch(e){el.innerHTML="";}
+}
+
+async function searchProperty(){
+  var address=document.getElementById("addressInput").value.trim();
+  searchError.textContent="";result.innerHTML="";
+  if(!address){searchError.textContent="Enter a full street address.";return;}
+  searchStatus.textContent="Searching authorized property data...";
+  try{
+    var data=await authorizedFetch("/property-search?address="+encodeURIComponent(address));
+    var prop=data.property&&data.property[0];
+    if(!prop){throw new Error("No property was found for that address.");}
+    saveRecent(address);
+
+    var addr=prop.address||{},loc=prop.location||{},area=prop.area||{},lot=prop.lot||{},summary=prop.summary||{};
+    var building=prop.building||{},rooms=building.rooms||{},size=building.size||{},interior=building.interior||{},construction=building.construction||{},bldgSummary=building.summary||{};
+    var assessment=prop.assessment||{},assessed=assessment.assessed||{},market=assessment.market||{},tax=assessment.tax||{},owner=assessment.owner||{};
+    var mortgage=(assessment.mortgage||{}).FirstConcurrent||{},sale=prop.sale||{},saleAmount=sale.amount||{};
+    var avm=prop.avmDetail||{},avmAmount=avm.amount||{},fullHistory=prop.fullSalesHistory;
+
+    var map="";
+    if(loc.latitude&&loc.longitude){
+      map="<iframe class='map-frame' src='https://maps.google.com/maps?q="+encodeURIComponent(loc.latitude+","+loc.longitude)+"&z=19&t=k&output=embed' loading='lazy'></iframe>";
+    }
+
+    var details="<div class='property-columns'>";
+    details+="<div class='data-card'><h3>Property Details</h3>"+
+      row("Type",summary.propType||summary.propClass)+row("Land use",summary.propLandUse)+row("Year built",summary.yearBuilt)+
+      row("Stories",bldgSummary.levels)+row("Construction",construction.constructionType)+row("Wall type",construction.wallType)+
+      row("Flooring",interior.floors)+row("View",bldgSummary.view)+row("Zoning",lot.zoningType)+row("Legal description",summary.legal1)+"</div>";
+    details+="<div class='data-card'><h3>Building</h3>"+
+      row("Bedrooms",rooms.beds)+row("Bathrooms",(rooms.bathsFull||"N/A")+" / "+(rooms.bathsTotal||"N/A"))+
+      row("Living area",size.livingSize?size.livingSize+" sq ft":"")+row("Universal size",size.universalSize?size.universalSize+" sq ft":"")+"</div>";
+    details+="<div class='data-card'><h3>Lot &amp; Area</h3>"+
+      row("Lot size",lot.lotSize1?lot.lotSize1+" acres ("+(lot.lotSize2||"N/A")+" sq ft)":"")+
+      row("Frontage / depth",(lot.frontage||"N/A")+" ft / "+(lot.depth||"N/A")+" ft")+row("Subdivision",area.subdName)+row("County",area.countrySecSubd)+"</div>";
+    details+="<div class='data-card'><h3>Assessment &amp; Tax</h3>"+
+      row("Assessed total value",money(assessed.assdTtlValue))+row("Assessed land value",money(assessed.assdLandValue))+
+      row("Assessed improvement value",money(assessed.assdImprValue))+row("Market total value",money(market.mktTtlValue))+
+      row("Annual property tax",tax.taxAmt?money(tax.taxAmt)+" ("+(tax.taxYear||"N/A")+")":"")+"</div>";
+    details+="<div class='data-card'><h3>Ownership</h3>"+
+      row("Owner",(owner.owner1||{}).fullName)+row("Owner type",owner.type)+row("Mailing address",owner.mailingAddressOneLine)+
+      row("Absentee owner",owner.absenteeOwnerStatus==="A"?"Yes":(owner.absenteeOwnerStatus?"No":""))+"</div>";
+    if(mortgage.amount){
+      details+="<div class='data-card'><h3>Most Recent Mortgage</h3>"+
+        row("Lender",mortgage.lenderLastName)+row("Amount",money(mortgage.amount))+row("Recorded",mortgage.date)+
+        row("Term",mortgage.term?mortgage.term+" years":"")+row("Due date",mortgage.dueDate)+"</div>";
+    }
+    if(avmAmount.value){
+      details+="<div class='data-card'><h3>Automated Valuation (AVM)</h3>"+
+        row("Estimated value",money(avmAmount.value))+row("Value range",(money(avmAmount.low)||"N/A")+" - "+(money(avmAmount.high)||"N/A"))+
+        row("Confidence score",avmAmount.scr?avmAmount.scr+"/100":"")+row("As of",avm.eventDate)+
+        "<div class='metric-note'>Algorithmic estimate, not an appraisal.</div></div>";
+    }
+    details+="</div>";
+
+    var history="";
+    if(Array.isArray(fullHistory)&&fullHistory.length){
+      history="<div class='result-section'><h3>Sales History</h3><div class='table-wrap'><table><thead><tr><th>Date</th><th>Amount</th><th>Type</th><th>Seller</th></tr></thead><tbody>";
+      fullHistory.forEach(function(h){
+        var a=h.amount||{};
+        history+="<tr><td>"+esc(h.saleTransDate||h.saleSearchDate||"N/A")+"</td><td>"+esc(money(a.saleAmt)||"N/A")+"</td><td>"+esc(a.saleTransType||"N/A")+"</td><td>"+esc(h.sellerName||"N/A")+"</td></tr>";
+      });
+      history+="</tbody></table></div></div>";
+    }else if(saleAmount.saleAmt){
+      history="<div class='result-section'><h3>Most Recent Sale</h3>"+row("Sale amount",money(saleAmount.saleAmt))+row("Sale date",sale.saleSearchDate)+"</div>";
+    }
+
+    var compsHtml="";
+    try{
+      var compsRaw=data.compsRaw;
+      var compsList=compsRaw.RESPONSE_GROUP.RESPONSE.RESPONSE_DATA.PROPERTY_INFORMATION_RESPONSE_ext.SUBJECT_PROPERTY_ext.PROPERTY;
+      if(Array.isArray(compsList)){
+        var comps=compsList.map(function(p){return p.COMPARABLE_PROPERTY_ext;}).filter(Boolean);
+        comps.sort(function(a,b){
+          var da=(a.SALES_HISTORY&&a.SALES_HISTORY["@TransferDate_ext"])||"";
+          var db=(b.SALES_HISTORY&&b.SALES_HISTORY["@TransferDate_ext"])||"";
+          return db.localeCompare(da);
+        });
+        if(comps.length){
+          compsHtml="<div class='result-section'><h3>Comparable Sales</h3><div class='table-wrap'><table><thead><tr><th>Address</th><th>Distance</th><th>Sale Price</th><th>Sale Date</th><th>Beds/Baths</th><th>Sq Ft</th></tr></thead><tbody>";
+          comps.forEach(function(c){
+            var sh=c.SALES_HISTORY||{},st=c.STRUCTURE||{},ca=(c["@_StreetAddress"]||"N/A")+", "+(c["@_City"]||"");
+            var dist=c["@DistanceFromSubjectPropertyMilesCount"]?(+c["@DistanceFromSubjectPropertyMilesCount"]).toFixed(2)+" mi":"N/A";
+            var date=sh["@TransferDate_ext"]?sh["@TransferDate_ext"].slice(0,10):"N/A",price=money(sh["@PropertySalesAmount"])||"N/A";
+            var bb=(st["@TotalBedroomCount"]||"N/A")+" / "+(st["@TotalBathroomCount"]||"N/A"),sq=st["@GrossLivingAreaSquareFeetCount"]||"N/A";
+            compsHtml+="<tr class='comp-row' data-addr='"+esc(ca)+"' data-price='"+esc(price)+"' data-date='"+esc(date)+"' data-beds='"+esc(bb)+"' data-sqft='"+esc(sq)+"' data-dist='"+esc(dist)+"'><td>"+esc(ca)+"</td><td>"+esc(dist)+"</td><td>"+esc(price)+"</td><td>"+esc(date)+"</td><td>"+esc(bb)+"</td><td>"+esc(sq)+"</td></tr>";
+          });
+          compsHtml+="</tbody></table></div><div class='metric-note'>Comparable data is informational and is not an appraisal.</div></div>";
+        }
+      }
+    }catch(e){}
+
+    var schoolsHtml="";
+    try{
+      var sr=data.schoolsRaw&&data.schoolsRaw.property&&data.schoolsRaw.property[0];
+      var district=sr&&(sr.schoolDistrict||{}),schools=sr&&sr.school;
+      if((district&&district.districtname)||(Array.isArray(schools)&&schools.length)){
+        schoolsHtml="<div class='result-section'><h3>Schools</h3>";
+        if(district&&district.districtname) schoolsHtml+=row("District",district.districtname);
+        if(Array.isArray(schools)&&schools.length){
+          schoolsHtml+="<div class='table-wrap'><table><thead><tr><th>School</th><th>Grades</th><th>Rating</th><th>Type</th><th>Distance</th></tr></thead><tbody>";
+          schools.forEach(function(sc){
+            schoolsHtml+="<tr><td>"+esc(sc.InstitutionName||"N/A")+"</td><td>"+esc((sc.lowAssignedGrade||"N/A")+"-"+(sc.highAssignedGrade||"N/A"))+"</td><td>"+esc(sc.schoolRating||"N/A")+"</td><td>"+esc(sc.Filetypetext||"N/A")+"</td><td>"+esc(sc.distance!==undefined?sc.distance+" mi":"N/A")+"</td></tr>";
+          });
+          schoolsHtml+="</tbody></table></div>";
+        }
+        schoolsHtml+="<div class='metric-note'>Verify attendance boundaries and enrollment directly with the school district.</div></div>";
+      }
+    }catch(e){}
+
+    var oneLine=addr.oneLine||addr.line1||address;
+    result.innerHTML=map+"<h2 style='margin-top:14px'>"+esc(oneLine)+"</h2>"+details+history+compsHtml+schoolsHtml+"<div class='data-card result-section' id='neighborhoodData'></div>";
+    document.querySelectorAll(".comp-row").forEach(function(tr){
+      tr.addEventListener("mouseenter",function(e){showCompPreview(e,tr);});
+      tr.addEventListener("mousemove",positionCompPreview);
+      tr.addEventListener("mouseleave",hideCompPreview);
+    });
+    loadNeighborhood(address);
+    searchStatus.textContent="Search complete.";
+  }catch(e){
+    searchStatus.textContent="";
+    searchError.textContent=e.message||"Property search failed.";
+  }
+}
+
+document.getElementById("loginButton").addEventListener("click",function(){
+  authError.textContent="";authStatus.textContent="Signing in...";
+  var email=document.getElementById("authEmail").value.trim();
+  var password=document.getElementById("authPassword").value;
+  auth.signInWithEmailAndPassword(email,password).catch(function(err){
+    authStatus.textContent="";authError.textContent=err.message;
+  });
+});
+document.getElementById("authPassword").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("loginButton").click();});
+document.getElementById("logoutButton").addEventListener("click",function(){auth.signOut();});
+document.getElementById("searchButton").addEventListener("click",searchProperty);
+document.getElementById("addressInput").addEventListener("keydown",function(e){if(e.key==="Enter")searchProperty();});
+
+auth.onAuthStateChanged(function(user){
+  authError.textContent="";authStatus.textContent="";
+  if(user){
+    authPanel.style.display="none";searchPanel.classList.add("active");
+    document.getElementById("signedInAs").textContent="Signed in as "+user.email;
+    renderRecent();
+  }else{
+    authPanel.style.display="block";searchPanel.classList.remove("active");
+    result.innerHTML="";searchStatus.textContent="";searchError.textContent="";
+  }
+});
+
+window.showCompPreview=showCompPreview;
+window.positionCompPreview=positionCompPreview;
+window.hideCompPreview=hideCompPreview;
+})();
+</script>
+</body>
+</html>

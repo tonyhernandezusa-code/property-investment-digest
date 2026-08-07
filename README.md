@@ -1,12 +1,32 @@
-# Property Investment Digest — Migration 8.4
+# Property Investment Digest — Migration 8.5
 
-Adds two restored and expanded residential tools:
+Adds `property-search.html` as an Authorized Professional Property Search.
 
-- `home-mortgage.html` — single-family, condominium and townhouse mortgage calculator.
-- `home-affordability.html` — income/debt and cash-to-close affordability calculator.
+The page restores the main address-level research presentation from the older site:
+- Property characteristics
+- Building details
+- Lot / area
+- Assessment and property tax
+- Ownership
+- Most recent mortgage
+- Sales history
+- AVM when available
+- Comparable sales when available
+- Schools when available
+- Neighborhood Census context
+- Satellite map
+- Recent searches stored only in the browser
 
-Home Mortgage includes fixed/ARM financing, taxes, insurance, HOA/condo dues, PMI, flood insurance, monthly and one-time special assessments, maintenance, extra principal, simplified biweekly comparison, buyer brokerage, seller-paid brokerage, closing costs, seller credit, cash to close, optional balloon and annual amortization.
+Security design:
+- No public sign-up button.
+- Firebase email/password sign-in.
+- Authenticated requests send a Firebase ID token to the existing ATTOM Cloudflare Worker.
+- `WORKER_AUTH_PATCH.js` is included so the existing Worker can validate the token and enforce an authorized-email allow-list server-side.
 
-Home Affordability compares an income/debt-limited price with a cash-limited price and displays the lower amount as an educational illustrative price.
+IMPORTANT:
+The website package alone does NOT make the old Worker private.
+The Worker security patch must be merged and deployed before the ATTOM data endpoint is considered protected.
+
+Foreclosure search remains disabled because the older project identified it as a separate ATTOM premium product.
 
 No government-data update is required.

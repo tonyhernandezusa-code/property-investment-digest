@@ -1,0 +1,46 @@
+PROPERTY INVESTMENT DIGEST — MIGRATION 8.5
+AUTHORIZED PROPERTY SEARCH
+
+PART A — WEBSITE
+1. Download and unzip property-investment-digest-migration8-5-authorized-property-search.zip.
+2. Open the property-investment-digest GitHub repository.
+3. Click Add file > Upload files.
+4. Upload the extracted website files.
+5. Commit message:
+   Add authorized property search
+6. Commit changes.
+7. Wait for GitHub Pages deployment.
+
+New page:
+https://tonyhernandezusa-code.github.io/property-investment-digest/property-search.html
+
+NO GOVERNMENT DATA UPDATE IS REQUIRED.
+
+PART B — REQUIRED SERVER SECURITY
+The page is not truly protected until the ATTOM Cloudflare Worker validates authentication server-side.
+
+The ZIP contains:
+WORKER_AUTH_PATCH.js
+
+The existing Worker source was not present in the website repository, so the patch was not automatically merged into the live Worker.
+
+Required Worker settings:
+FIREBASE_WEB_API_KEY
+AUTHORIZED_EMAILS
+ALLOWED_ORIGIN=https://tonyhernandezusa-code.github.io
+
+The protected Worker routes must include at least:
+/property-search
+/neighborhood-data
+and any other route that can return licensed property data.
+
+SECURITY TEST:
+After the Worker patch is deployed, directly opening the Worker /property-search URL without a Firebase Authorization header MUST return HTTP 401.
+If it still returns property data, the Worker is not protected.
+
+AUTHORIZED USER ACCOUNT
+Create/keep the approved user in the Firebase Authentication project used by the older property manager.
+The new Property Search page intentionally has Sign In but no public Sign Up button.
+
+IMPORTANT:
+Do not put the ATTOM API key in GitHub Pages, HTML, or browser JavaScript.
