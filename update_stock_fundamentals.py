@@ -45,7 +45,7 @@ TICKERS = list(SEC_CIKS.keys())
 
 USER_AGENT = os.getenv(
     "SEC_USER_AGENT",
-    "PropertyInvestmentDigest/1.0 https://tonyhernandezusa-code.github.io/property-investment-digest/"
+    "PropertyInvestmentDigest/1.0 chambelon@aol.com https://tonyhernandezusa-code.github.io/property-investment-digest/"
 )
 HEADERS = {
     "User-Agent": USER_AGENT,
@@ -56,23 +56,44 @@ SESSION = requests.Session()
 SESSION.headers.update(HEADERS)
 
 def get_json(url):
+    """
+    Fetch SEC JSON with short retry/backoff and immediate diagnostic logging.
+    This is intentionally fail-fast so GitHub Actions does not sit for many minutes
+    when a SEC endpoint is rejecting the runner.
+    """
     last_error = None
-    for attempt in range(6):
+    delays = [1, 2, 4]
+    for attempt in range(len(delays) + 1):
         try:
-            response = SESSION.get(url, timeout=30)
+            print(f"SEC GET {url} (attempt {attempt + 1}/{len(delays) + 1})", flush=True)
+            response = SESSION.get(url, timeout=20)
+            print(f"SEC response: {response.status_code} for {url}", flush=True)
+
             if response.status_code in (403, 429, 500, 502, 503, 504):
                 last_error = requests.HTTPError(
                     f"{response.status_code} response from {url}",
                     response=response
                 )
-                time.sleep(min(30, 2 ** attempt))
-                continue
+                if attempt < len(delays):
+                    wait = delays[attempt]
+                    print(f"Temporary SEC response. Retrying in {wait}s...", flush=True)
+                    time.sleep(wait)
+                    continue
+
             response.raise_for_status()
-            time.sleep(0.40)
+            time.sleep(0.50)
             return response.json()
+
         except requests.RequestException as exc:
             last_error = exc
-            time.sleep(min(30, 2 ** attempt))
+            print(f"SEC request error: {exc}", flush=True)
+            if attempt < len(delays):
+                wait = delays[attempt]
+                print(f"Retrying in {wait}s...", flush=True)
+                time.sleep(wait)
+                continue
+            break
+
     raise last_error
 
 def pct_change(current, previous):
@@ -276,12 +297,20 @@ def main():
     companies, errors = [], []
     for ticker in TICKERS:
         cik = SEC_CIKS[ticker]
+        print(f"\n=== {ticker} | CIK {cik} ===", flush=True)
         try:
             companies.append(company_record(ticker, cik))
-            print("Updated", ticker)
+            print("Updated", ticker, flush=True)
         except Exception as exc:
             errors.append({"ticker": ticker, "error": str(exc)})
-            print("Could not update", ticker, "-", exc)
+            print("Could not update", ticker, "-", exc, flush=True)
+
+            # If the first two companies both fail, the problem is likely connectivity/
+            # blocking rather than issuer-specific XBRL tagging. Stop quickly so the
+            # GitHub Action produces a useful log instead of running for many minutes.
+            if len(companies) == 0 and len(errors) >= 2:
+                print("Stopping early after two consecutive company failures.", flush=True)
+                break
 
     payload = {
         "updated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -300,7 +329,7 @@ def main():
         ]
     }
     OUTPUT.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print("Wrote", OUTPUT, "with", len(companies), "companies and", len(errors), "errors.")
+    print("Wrote", OUTPUT, "with", len(companies), "companies and", len(errors), "errors.", flush=True)
 
 if __name__ == "__main__":
     main()
