@@ -1,9 +1,9 @@
-name: Update Stock Fundamentals
+name: Update Authorized Stocks
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "23 9 * * 1"
+    - cron: "15 11 * * 1-5"
 
 permissions:
   contents: write
@@ -11,6 +11,7 @@ permissions:
 jobs:
   update:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -20,23 +21,33 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install dependency
-        run: python -m pip install requests
+      - name: Install market-data dependencies
+        run: python -m pip install yfinance cryptography pandas
 
-      - name: Update SEC stock fundamentals
+      - name: Verify stock password secret
+        env:
+          STOCK_ACCESS_PASSWORD: ${{ secrets.STOCK_ACCESS_PASSWORD }}
+        run: |
+          if [ -z "$STOCK_ACCESS_PASSWORD" ]; then
+            echo "::error::Missing repository secret STOCK_ACCESS_PASSWORD"
+            exit 1
+          fi
+
+      - name: Update encrypted Yahoo stock data
         env:
           PYTHONUNBUFFERED: "1"
-          SEC_USER_AGENT: "PropertyInvestmentDigest/1.0 chambelon@aol.com https://tonyhernandezusa-code.github.io/property-investment-digest/"
-        run: python -u update_stock_fundamentals.py
+          STOCK_ACCESS_PASSWORD: ${{ secrets.STOCK_ACCESS_PASSWORD }}
+        run: python -u update_authorized_stocks.py
 
-      - name: Commit updated stock data
+      - name: Commit encrypted stock data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add stock-fundamentals.json
+          git add authorized-stocks.enc.json
           if git diff --cached --quiet; then
             echo "No stock-data changes to commit."
           else
-            git commit -m "Update SEC stock fundamentals"
-            git push
+            git commit -m "Update authorized Yahoo stock data"
+            git pull --rebase origin main
+            git push origin main
           fi
